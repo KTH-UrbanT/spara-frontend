@@ -1,15 +1,13 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0);
+import Chat from "./components/Chat";
 
+function App() {
   return (
-    <>
-      <h1 className="text-3xl font-bold underline text-center">Hello world!</h1>
-    </>
+    <div className="bg-gradient-to-b from-gray-100 to-gray-300 h-[calc(100dvh)] w-screen flex flex-col items-center">
+      <Chat />
+    </div>
   );
 }
 
