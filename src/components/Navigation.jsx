@@ -4,9 +4,8 @@ function Navigation() {
   return (
     <div className="navbar">
       <div className="flex-1 justify-center">
-        <div className="text-2xl">SPARA</div>
+        <div className="text-2xl dark:text-white">SPARA</div>
       </div>
-      <div className="divider" />
     </div>
   );
 }
