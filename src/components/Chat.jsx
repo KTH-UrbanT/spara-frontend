@@ -1,7 +1,7 @@
 import react from "react";
 
 import Navigation from "./Navigation";
-import Dialogue from "./Dialogue";
+import Dialogue from "./chat/Dialogue";
 import SendPanel from "./SendPanel";
 
 function Chat() {
