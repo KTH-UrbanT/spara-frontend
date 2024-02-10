@@ -1,4 +1,5 @@
 import React, { useContext, useState } from "react";
+import { Icon } from "@iconify/react";
 import { SocketContext } from "../context/socket";
 
 function SendPanel() {
@@ -15,7 +16,7 @@ function SendPanel() {
   };
 
   return (
-    <form onSubmit={sendMessage} className="flex join w-full p-2">
+    <form onSubmit={sendMessage} className="flex join w-full px-4 py-4">
       <input
         type="text"
         value={message}
@@ -27,22 +28,12 @@ function SendPanel() {
         type="submit"
         className="btn btn-square bg-secondary dark:bg-primary"
       >
-        <svg
-          transform="rotate(90)"
-          className="w-6 h-6 text-gray-800 dark:text-white"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="m12 18-7 3 7-18 7 18-7-3Zm0 0v-5"
-          />
-        </svg>
+        <Icon
+          className="text-white"
+          icon="fluent:send-24-filled"
+          width="2em"
+          height="2em"
+        />
       </button>
     </form>
   );
