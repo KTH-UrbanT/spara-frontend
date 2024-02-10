@@ -20,20 +20,19 @@ function Dialogue() {
   }, [chat]);
 
   return (
+    // That is a scroller container
     <div className="flex flex-col-reverse h-full w-full px-4 overflow-y-auto md:text-sm">
-      <Message position="chat-start">
-        It's over Anakin, <br />I have the high ground.
-      </Message>
-      <Message position="chat-end">You underestimate my power!</Message>
-      <Message position="chat-start">
-        It's over Anakin, <br />I have the high ground.
-      </Message>
-      <Message position="chat-end">You underestimate my power!</Message>
-      <Message position=" chat-start">
-        It's over Anakin, <br />I have the high ground.
-      </Message>
-      <Message position="chat chat-end">You underestimate my power!</Message>
-      <div>{chat}</div>
+      {/* That is a container for the messages */}
+      <div>
+        {chat.map((message, index) => (
+          <Message
+            key={index}
+            position={index % 2 === 0 ? "chat-start" : "chat-end"}
+          >
+            {message}
+          </Message>
+        ))}
+      </div>
     </div>
   );
 }
