@@ -1,38 +1,33 @@
-import React, { useContext, useState, useEffect } from "react";
-import { SocketContext } from "../../context/socket";
-import Message from "./Message";
+import React, { useEffect, useRef } from 'react';
+import Message from './Message';
 
-function Dialogue() {
-  const socket = useContext(SocketContext);
+const Dialogue = ({ messages }) => {
+  const scrollRef = useRef(null);
 
-  const [chat, setChat] = useState([]);
-
+  // Auto-scroll to the bottom when messages change
   useEffect(() => {
-    // Listen for incoming messages
-    socket.on("message", (msg) => {
-      setChat([...chat, msg]);
-    });
-
-    // Cleanup on component unmount
-    return () => {
-      socket.off("message");
-    };
-  }, [chat]);
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   return (
-    // That is a scroller container
-    <div className="flex flex-col-reverse h-full w-full px-4 overflow-y-auto md:text-sm">
-      {/* That is a container for the messages */}
-      <div>
-        {chat.map((message, index) => (
+    <div
+      ref={scrollRef} // Reference for scrolling
+      className="dialogue h-64 w-full max-w-md p-2 border border-gray-200 rounded bg-white overflow-y-auto"
+    >
+      {messages.length > 0 ? (
+        messages.map((message, index) => (
           <Message
             key={index}
             position={index % 2 === 0 ? "chat-start" : "chat-end"}
           >
             {message}
           </Message>
-        ))}
-      </div>
+        ))
+      ) : (
+        <p className="text-gray-500 text-center">No messages yet. Start the conversation!</p>
+      )}
     </div>
   );
 }

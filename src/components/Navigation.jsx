@@ -1,13 +1,17 @@
-import react from "react";
+import React from 'react';
+import { useSocket } from '../context/socketContext';
 
-function Navigation() {
+const Navigation = () => {
+  const { isConnected } = useSocket();
+
   return (
-    <div className="navbar">
-      <div className="flex-1 justify-center">
-        <div className="text-2xl dark:text-white">SPARA</div>
+    <div className="navbar p-4 bg-gray-100 shadow-md flex flex-col items-center">
+      <h2 className="text-xl font-semibold mb-1">SPARA</h2>
+      <div className={`text-sm ${isConnected ? 'text-green-500' : 'text-red-500'}`}>
+        Status: {isConnected ? 'Connected' : 'Disconnected'}
       </div>
     </div>
   );
-}
+};
 
 export default Navigation;
