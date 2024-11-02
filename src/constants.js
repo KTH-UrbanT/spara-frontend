@@ -1,0 +1,30 @@
+// URLs
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+export const SOCKET_SERVER_URL = import.meta.env.VITE_SOCKET_SERVER_URL || 'http://localhost:8000';
+
+// App-wide constants
+export const APP_NAME = 'Spara';
+export const TIMEOUT_DURATION = 5000;
+export const MAX_RECONNECT_ATTEMPTS = 5;
+
+// Event names
+export const EVENTS = {
+  MESSAGE_SEND: 'send_message',
+  MESSAGE_RECEIVE: 'receive_message',
+  USER_CONNECTED: 'user_connected',
+  USER_DISCONNECTED: 'user_disconnected',
+};
+
+// Application status
+export const STATUS = {
+  LOADING: 'loading',
+  SUCCESS: 'success',
+  ERROR: 'error',
+};
+
+// Error messages
+export const ERROR_MESSAGES = {
+  NETWORK_ERROR: 'Network error occurred. Please try again later.',
+  SOCKET_DISCONNECTED: 'Socket disconnected. Reconnecting...',
+  MESSAGE_SEND_FAILED: 'Failed to send message. Please retry.',
+};
