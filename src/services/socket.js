@@ -21,8 +21,8 @@ socket.on('reconnect_attempt', (attempt) => {
   console.log(`Reconnect attempt ${attempt}`);
 });
 
-socket.on('reconnect_failed', () => {
-  console.error('Failed to reconnect to socket server');
+socket.on('connect_error', (error) => {
+  console.error('Connection error:', error);
 });
 
 // Event handling functions
