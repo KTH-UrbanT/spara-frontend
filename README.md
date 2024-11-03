@@ -16,6 +16,7 @@ The client interface for the chatbot is implemented using ReactJS and is integra
 `npm run dev`
 
 # Documentation
+## Class diagram
 - **App**: The root component, rendering the overall application, possibly including `Navigation` and `Chat`.
 - **SocketContext**: A context for managing the WebSocket connection, providing methods to connect, disconnect, send, and listen for messages.
 - **Navigation**: Manages navigation between different pages or views within the app.
@@ -61,11 +62,37 @@ classDiagram
 
     App "1" *-- "1" SocketContext
     App "1" *-- "1" Navigation
-    Navigation "1" *-- "1" SocketContext
+    Navigation "1" ..> "1" SocketContext
     App "1" *-- "1" Chat
     Chat "1" *-- "1" SendPanel
     Chat "1" *-- "1" Dialogue
-    Chat "1" *-- "1" SocketContext
+    Chat "1" ..> "1" SocketContext
     Dialogue "1" *-- "*" Message
-    SendPanel "1" *-- "1" SocketContext
+    SendPanel "1" ..> "1" SocketContext
+```
+
+### Sequence diagram
+1. User sending a message via SendPanel.
+2. SendPanel sending the message through SocketContext.
+3. SocketContext handling the message and sending it to the server.
+4. Server response with the message echoed back.
+5. SocketContext receiving the message and updating Chat to display it in Dialogue.
+```mermaid
+sequenceDiagram
+    participant User as User
+    participant SendPanel as SendPanel
+    participant SocketContext as SocketContext
+    participant Server as Server
+    participant Chat as Chat
+    participant Dialogue as Dialogue
+
+    User->>SendPanel: Type and submit message
+    SendPanel->>SocketContext: sendMessage(message)
+    SocketContext->>Server: Emit message event with data
+    Server-->>SocketContext: Acknowledge message or echo back
+
+    SocketContext->>Chat: onMessage(message)
+    Chat->>Dialogue: Update message list
+    Dialogue->>User: Display new message
+
 ```
