@@ -12,23 +12,36 @@ const Dialogue = ({ messages }) => {
   }, [messages]);
 
   return (
-    <div
-      ref={scrollRef} // Reference for scrolling
-      className="dialogue h-64 w-full max-w-md p-2 border border-gray-200 rounded bg-white overflow-y-auto"
-    >
-      {messages.length > 0 ? (
-        messages.map((message, index) => (
-          <Message
-            key={index}
-            position={index % 2 === 0 ? "chat-start" : "chat-end"}
-          >
-            {message}
-          </Message>
-        ))
+    <>
+      {!!messages && messages.length > 0 ? (
+        <div
+          ref={scrollRef} // Reference for scrolling
+          className="dialogue h-full w-full max-w-md p-2 overflow-y-auto"
+        >
+          {messages.map((message, index) => (
+            <Message
+              key={index}
+              position={message.source === "bot" ? "chat-start" : "chat-end"}
+              time={((new Date(message.time))).toLocaleString('en-GB', { timeZone: 'UTC' })}
+            >
+              {message.text}
+            </Message>
+          ))}
+        </div>
       ) : (
-        <p className="text-gray-500 text-center">No messages yet. Start the conversation!</p>
+        <div
+          ref={scrollRef} // Reference for scrolling
+          className="flex-grow align-center content-center"
+        >
+          <div className='text-center'>
+            <div>
+              <p className="text-l dark:text-slate-300">No messages yet.</p>
+              <p className="text-xl dark:text-slate-300">Start the conversation!</p>
+            </div>
+          </div>
+        </div>
       )}
-    </div>
+    </>
   );
 }
 

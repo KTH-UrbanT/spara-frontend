@@ -1,14 +1,13 @@
 import "./App.css";
 
-import Chat from "./components/Chat";
+import { RouterProvider } from 'react-router-dom';
 import { SocketProvider } from "./context/socketContext";
+import { router } from "./routes/router"
 
 function App() {
   return (
     <SocketProvider>
-      <div className="bg-gradient-to-b from-gray-100 to-gray-300 dark:bg-gradient-to-b dark:from-gray-700 dark:to-gray-900 h-[calc(100dvh)] w-screen flex flex-col items-center">
-          <Chat />
-      </div>
+      <RouterProvider router={router} />
     </SocketProvider>
   );
 }
