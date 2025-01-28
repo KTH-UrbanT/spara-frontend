@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import Message from './Message';
+import React, { useEffect, useRef } from "react";
+import Message from "./Message";
 
 const Dialogue = ({ messages }) => {
   const scrollRef = useRef(null);
@@ -21,8 +21,12 @@ const Dialogue = ({ messages }) => {
           {messages.map((message, index) => (
             <Message
               key={index}
-              position={message.source === "bot" ? "chat-start" : "chat-end"}
-              time={((new Date(message.time))).toLocaleString('en-GB', { timeZone: 'UTC' })}
+              position={
+                message.source === "assistant" ? "chat-start" : "chat-end"
+              }
+              time={new Date(message.time).toLocaleString("en-GB", {
+                timeZone: "UTC",
+              })}
             >
               {message.text}
             </Message>
@@ -33,16 +37,18 @@ const Dialogue = ({ messages }) => {
           ref={scrollRef} // Reference for scrolling
           className="flex-grow align-center content-center"
         >
-          <div className='text-center'>
+          <div className="text-center">
             <div>
               <p className="text-l dark:text-slate-300">No messages yet.</p>
-              <p className="text-xl dark:text-slate-300">Start the conversation!</p>
+              <p className="text-xl dark:text-slate-300">
+                Start the conversation!
+              </p>
             </div>
           </div>
         </div>
       )}
     </>
   );
-}
+};
 
 export default Dialogue;

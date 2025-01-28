@@ -22,23 +22,6 @@ export const SocketProvider = ({ children }) => {
     // Listen for incoming messages
     const handleMessageReceive = (message) => {
       console.log("Received message:", message); // Log the received message
-
-      // TODO update message format
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          id: 10000,
-          source: "user",
-          text: message,
-          time: new Date().toISOString(),
-        },
-        {
-          id: 10001,
-          source: "bot",
-          text: "Loading...",
-          time: new Date().toISOString(),
-        },
-      ]);
     };
 
     const handleAnswerReceive = (answer) => {
@@ -47,8 +30,8 @@ export const SocketProvider = ({ children }) => {
         ...prevMessages.slice(0, -1), // Remove the "Loading..." message
         {
           id: 10001,
-          source: "bot",
-          text: answer,
+          source: "assistant",
+          text: answer.content,
           time: new Date().toISOString(),
         },
       ]);
@@ -66,6 +49,22 @@ export const SocketProvider = ({ children }) => {
   }, []);
 
   const handleSendMessage = (message) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      {
+        id: 10000,
+        source: "user",
+        text: message,
+        time: new Date().toISOString(),
+      },
+      {
+        id: 10001,
+        source: "assistant",
+        text: "Loading...",
+        time: new Date().toISOString(),
+      },
+    ]);
+
     sendMessage(message);
   };
 
