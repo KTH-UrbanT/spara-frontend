@@ -13,7 +13,7 @@ export const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: "ch/:chatId", // Route for Chat page
+        path: "chat", // Route for Chat page
         element: <ChatPage />,
       },
     ],
