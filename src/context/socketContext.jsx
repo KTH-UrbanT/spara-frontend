@@ -1,5 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import socket, { sendMessage, listenForMessages, removeMessageListener } from '../services/socket';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import socket, {
+  sendMessage,
+  listenForMessages,
+  removeMessageListener,
+} from "../services/socket";
 
 const SocketContext = createContext();
 
@@ -11,34 +15,51 @@ export const SocketProvider = ({ children }) => {
     const handleConnect = () => setIsConnected(true);
     const handleDisconnect = () => setIsConnected(false);
 
-    socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
 
     // Listen for incoming messages
     const handleMessageReceive = (message) => {
-      console.log("Received message:", message);  // Log the received message
+      console.log("Received message:", message); // Log the received message
 
       // TODO update message format
-      setMessages((prevMessages) => [...prevMessages, {
-          id: 10000, 
-          source: "user", 
-          text: message, 
-          time: (new Date()).toISOString()  
-        },{
-          id: 10001, 
-          source: "bot", 
-          text: "Loading...", 
-          time: (new Date()).toISOString()  
-        }
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          id: 10000,
+          source: "user",
+          text: message,
+          time: new Date().toISOString(),
+        },
+        {
+          id: 10001,
+          source: "bot",
+          text: "Loading...",
+          time: new Date().toISOString(),
+        },
+      ]);
+    };
+
+    const handleAnswerReceive = (answer) => {
+      console.log("Received answer:", answer); // Log the received answer
+      setMessages((prevMessages) => [
+        ...prevMessages.slice(0, -1), // Remove the "Loading..." message
+        {
+          id: 10001,
+          source: "bot",
+          text: answer,
+          time: new Date().toISOString(),
+        },
       ]);
     };
 
     listenForMessages(handleMessageReceive); // Listen for "receive_message"
+    listenForAnswers(handleAnswerReceive); // Listen for "answer_message"
 
     // Cleanup listeners
     return () => {
-      socket.off('connect', handleConnect);
-      socket.off('disconnect', handleDisconnect);
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
       removeMessageListener(handleMessageReceive);
     };
   }, []);
@@ -48,7 +69,9 @@ export const SocketProvider = ({ children }) => {
   };
 
   return (
-    <SocketContext.Provider value={{ messages, isConnected, handleSendMessage }}>
+    <SocketContext.Provider
+      value={{ messages, isConnected, handleSendMessage }}
+    >
       {children}
     </SocketContext.Provider>
   );

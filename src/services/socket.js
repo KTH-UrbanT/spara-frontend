@@ -1,28 +1,28 @@
-import { io } from 'socket.io-client';
-import { SOCKET_SERVER_URL, EVENTS } from '../constants';
+import { io } from "socket.io-client";
+import { SOCKET_SERVER_URL, EVENTS } from "../constants";
 
 // Initialize the socket connection
 const socket = io(SOCKET_SERVER_URL, {
-  reconnection: true,                    // Enable auto-reconnection
-  reconnectionAttempts: 5,               // Max reconnection attempts
-  transports: ['websocket'],             // Use WebSocket transport
+  reconnection: true, // Enable auto-reconnection
+  reconnectionAttempts: 5, // Max reconnection attempts
+  transports: ["websocket"], // Use WebSocket transport
 });
 
 // Event handlers for socket connection status
-socket.on('connect', () => {
-  console.log('Connected to socket server');
+socket.on("connect", () => {
+  console.log("Connected to socket server");
 });
 
-socket.on('disconnect', () => {
-  console.log('Disconnected from socket server');
+socket.on("disconnect", () => {
+  console.log("Disconnected from socket server");
 });
 
-socket.on('reconnect_attempt', (attempt) => {
+socket.on("reconnect_attempt", (attempt) => {
   console.log(`Reconnect attempt ${attempt}`);
 });
 
-socket.on('connect_error', (error) => {
-  console.error('Connection error:', error);
+socket.on("connect_error", (error) => {
+  console.error("Connection error:", error);
 });
 
 // Event handling functions
@@ -32,6 +32,10 @@ export const sendMessage = (message) => {
 
 export const listenForMessages = (callback) => {
   socket.on(EVENTS.MESSAGE_RECEIVE, callback);
+};
+
+export const listenForAnswers = (callback) => {
+  socket.on(EVENTS.MESSAGE_ANSWER, callback);
 };
 
 // Cleanup function to remove listeners
