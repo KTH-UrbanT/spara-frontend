@@ -7,15 +7,17 @@ const Button = ({
   size,
   color = 'bg-secondary dark:bg-primary', // Default background color
   textColor = 'text-white', // Default text color
-  iconSize = 24,
+  iconSize = 22,
+  props
 }) => {
   return (
     <button
       onClick={onClick}
       className={
         //  ${hoverColor} ${focusColor}
-        `btn border-transparent ${!!icon && !text && 'btn-square'} ${color} ${textColor} ${size}`
+        `btn border-transparent rounded-lg ${!!icon && !text && 'btn-square'} ${color} ${textColor} ${size}`
       }
+      {...props}
     >
       {/* Render icon if provided */}
       {icon && React.cloneElement(icon, { size: iconSize })}

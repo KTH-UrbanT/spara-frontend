@@ -17,7 +17,20 @@ export const SocketProvider = ({ children }) => {
     // Listen for incoming messages
     const handleMessageReceive = (message) => {
       console.log("Received message:", message);  // Log the received message
-      setMessages((prevMessages) => [...prevMessages, message]);
+
+      // TODO update message format
+      setMessages((prevMessages) => [...prevMessages, {
+          id: 10000, 
+          source: "user", 
+          text: message, 
+          time: (new Date()).toISOString()  
+        },{
+          id: 10001, 
+          source: "bot", 
+          text: "Loading...", 
+          time: (new Date()).toISOString()  
+        }
+      ]);
     };
 
     listenForMessages(handleMessageReceive); // Listen for "receive_message"

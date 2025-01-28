@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { HiMenu } from 'react-icons/hi'; // Icons for collapse/expand
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
+import { HiMenu } from "react-icons/hi"; // Icons for collapse/expand
 
-import Button from '../components/Button';
+import Button from "../Button";
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   // Toggle sidebar collapse state
@@ -17,27 +17,25 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
         <div className="fixed left-4 top-4 z-50">
           <Button
             icon={<HiMenu size={18} />}
-            color={'btn-neutral'}
-            size={'btn-sm'}
+            color={"btn-neutral"}
+            size={"btn-sm"}
             onClick={toggleSidebar}
           />
         </div>
       )}
 
       {/* Expanded sidebar */}
-
       <aside
-        // className={`fixed h-full bg-gray-800 text-white transition-all duration-300 ${isCollapsed ? 'invisible w-0' : 'visible w-full sm:w-64'}`}
         className={`fixed left-0 top-0 h-full w-64 transform bg-gray-800 text-white transition-transform duration-300 ease-in-out
-          ${isCollapsed ? '-translate-x-full' : 'translate-x-0'}`}
+          ${isCollapsed ? "-translate-x-full" : "translate-x-0"}`}
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between p-4">
           <span className="text-2xl font-bold">Spara</span>
           <Button
             icon={<HiMenu size={18} />}
-            color={'btn-neutral'}
-            size={'btn-sm'}
+            color={"btn-neutral"}
+            size={"btn-sm"}
             onClick={toggleSidebar}
           />
         </div>
@@ -46,29 +44,11 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
         <nav className="flex-grow">
           <ul className="menu">
             <li>
-              <NavLink
-                to="/home"
-                // className={({ isActive }) =>
-                //   isActive
-                //     ? 'block bg-gray-700 px-4 py-2.5'
-                //     : 'block px-4 py-2.5 hover:bg-gray-700'
-                // }
-              >
-                Home
-              </NavLink>
+              <NavLink to="/">Home</NavLink>
             </li>
             <li className="menu-title text-slate-500">Sessions</li>
             <li>
-              <NavLink
-                to="/chat"
-                // className={({ isActive }) =>
-                //   isActive
-                //     ? 'block bg-gray-700 px-4 py-2.5'
-                //     : 'block px-4 py-2.5 hover:bg-gray-700'
-                // }
-              >
-                Chat
-              </NavLink>
+              <NavLink to="/chat">Chat</NavLink>
             </li>
           </ul>
         </nav>
