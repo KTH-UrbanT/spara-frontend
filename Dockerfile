@@ -21,8 +21,8 @@ FROM nginx:alpine AS production
 # Copy the build output to Nginx's public directory
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Expose port 80
-EXPOSE 80
+# Expose port 5173
+EXPOSE 5173
 
 # Start the Nginx server
 CMD ["nginx", "-g", "daemon off;"]
