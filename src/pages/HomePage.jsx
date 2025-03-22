@@ -13,7 +13,7 @@ function HomePage() {
             <p className="py-6 dark:text-slate-300">
               This is SPARA chatbot. Ask your questions by starting a chat.
             </p>
-            <Button text={"Start chat!"} onClick={() => navigate("/chat")} />
+            <Button text={"Start chat!"} onClick={() => navigate("/chat/-1")} />
           </div>
         </div>
       </div>

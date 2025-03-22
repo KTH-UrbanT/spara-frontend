@@ -1,20 +1,20 @@
 import React from "react";
 import { useSocket } from "../../context/socketContext";
+import { useAuth } from "../../context/authContext";
 import Dialogue from "./Dialogue";
 import SendPanel from "./SendPanel";
 
-const Chat = ({ session }) => {
-  const { messages } = useSocket(); // Access messages and connection status from context
-
-  console.log(session);
-  // const messages = [
-  //   { id: 1, source: "user", text: "What is your message", time: "2024-11-19T13:15:30.000Z" },
-  //   { id: 2, source: "bot", text: "This is my message", time: "2024-11-19T13:16:30.000Z" },
-  // ]
+const Chat = () => {
+  const { messages } = useSocket();
+  const { selectedSession, sessionLoadingStatus } = useAuth();
+  console.log("messages in chat: ", messages);
 
   return (
     <>
-      <Dialogue messages={messages} />
+      <Dialogue
+        messages={messages}
+        loadingStatus={sessionLoadingStatus[selectedSession]}
+      />
       <SendPanel />
     </>
   );

@@ -1,7 +1,12 @@
 import React, { useEffect, useRef } from "react";
 import Message from "./Message";
 
-const Dialogue = ({ messages }) => {
+const convertTimestamp = (timestamp) => {
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleString();
+};
+
+const Dialogue = ({ messages, loadingStatus }) => {
   const scrollRef = useRef(null);
 
   // Auto-scroll to the bottom when messages change
@@ -22,15 +27,18 @@ const Dialogue = ({ messages }) => {
             <Message
               key={index}
               position={
-                message.source === "assistant" ? "chat-start" : "chat-end"
+                message.role === "assistant" ? "chat-start" : "chat-end"
               }
-              time={new Date(message.time).toLocaleString("en-GB", {
-                timeZone: "UTC",
-              })}
+              time={convertTimestamp(message.timestamp)}
             >
-              {message.text}
+              {message.content}
             </Message>
           ))}
+          {loadingStatus && loadingStatus.loading ? (
+            <Message position="chat-start" time={null}>
+              <span className="loading loading-dots loading-sm"></span>
+            </Message>
+          ) : null}
         </div>
       ) : (
         <div
