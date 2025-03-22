@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "axios": "^1.8.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-icons": "^5.3.0",
@@ -17,6 +18,8 @@
     "socket.io-client": "^4.7.4"
   },
   "devDependencies": {
+    "@eslint/config-array": "^0.19.0",
+    "@eslint/object-schema": "^2.1.4",
     "@iconify/react": "^5.0.2",
     "@tailwindcss/typography": "^0.5.10",
     "@types/react": "^18.2.43",
@@ -25,8 +28,6 @@
     "autoprefixer": "^10.4.17",
     "daisyui": "^4.6.1",
     "eslint": "^9.14.0",
-    "@eslint/config-array": "^0.19.0",
-    "@eslint/object-schema": "^2.1.4",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.5",
