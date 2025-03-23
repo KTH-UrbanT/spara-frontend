@@ -3,12 +3,15 @@ import { NavLink } from "react-router-dom";
 import { HiMenu } from "react-icons/hi"; // Icons for collapse/expand
 
 import Button from "../Button";
+import { useAuth } from "../../context/authContext";
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   // Toggle sidebar collapse state
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
+
+  const { sessions } = useAuth();
 
   return (
     <div className="relative">
@@ -41,7 +44,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
         </div>
 
         {/* Sidebar Menu Items */}
-        <nav className="flex-grow">
+        {/* <nav className="flex-grow">
           <ul className="menu">
             <li>
               <NavLink to="/">Home</NavLink>
@@ -50,6 +53,30 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             <li>
               <NavLink to="/chat">Chat</NavLink>
             </li>
+          </ul>
+        </nav> */}
+
+        <nav className="flex-grow">
+          <ul className="menu">
+            <li>
+              <NavLink to="/">Home</NavLink>
+            </li>
+            {/* Show Sessions List if Available */}
+            {sessions?.length > 0 && (
+              <>
+                <li className="menu-title text-slate-500">Sessions</li>
+                {sessions.map((session) => (
+                  <li key={session.session_id}>
+                    <NavLink
+                      to={`/chat/${session.session_id}`}
+                      className="block px-4 py-2 hover:bg-gray-200 rounded-md"
+                    >
+                      {`Chat ${session.session_id}`}
+                    </NavLink>
+                  </li>
+                ))}
+              </>
+            )}
           </ul>
         </nav>
 
