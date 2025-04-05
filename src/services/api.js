@@ -1,10 +1,9 @@
 import axios from "axios";
+import { SOCKET_SERVER_URL } from "../constants.js";
 
 export async function getSessionsByUser(userId) {
   try {
-    const response = await axios.get(
-      `${import.meta.env.VITE_SOCKET_SERVER_URL}/session/${userId}/`,
-    );
+    const response = await axios.get(`${SOCKET_SERVER_URL}/session/${userId}/`);
     return response.data;
   } catch (error) {
     console.error("Failed to fetch sessions:", error);
@@ -15,7 +14,7 @@ export async function getSessionsByUser(userId) {
 export async function getMessagesBySession(sessionId) {
   try {
     const response = await axios.get(
-      `${import.meta.env.VITE_SOCKET_SERVER_URL}/messages/${sessionId}`,
+      `${SOCKET_SERVER_URL}/messages/${sessionId}`,
     );
     return response.data;
   } catch (error) {
@@ -26,10 +25,11 @@ export async function getMessagesBySession(sessionId) {
 
 export async function registerUser({ username, email, password }) {
   try {
-    const response = await axios.post(
-      `${import.meta.env.VITE_SOCKET_SERVER_URL}/user/register`,
-      { username, email, password },
-    );
+    const response = await axios.post(`${SOCKET_SERVER_URL}/user/register`, {
+      username,
+      email,
+      password,
+    });
     return response.data;
   } catch (error) {
     console.error("Failed to register user:", error);
@@ -40,7 +40,7 @@ export async function registerUser({ username, email, password }) {
 export async function registerTemporaryUser() {
   try {
     const response = await axios.post(
-      `${import.meta.env.VITE_SOCKET_SERVER_URL}/user/register/temporary`,
+      `${SOCKET_SERVER_URL}/user/register/temporary`,
     );
     return response.data;
   } catch (error) {
@@ -51,9 +51,7 @@ export async function registerTemporaryUser() {
 
 export async function getUserInfo(userId) {
   try {
-    const response = await axios.get(
-      `${import.meta.env.VITE_SOCKET_SERVER_URL}/user/${userId}`,
-    );
+    const response = await axios.get(`${SOCKET_SERVER_URL}/user/${userId}`);
     return response.data;
   } catch (error) {
     console.error("Failed to fetch user info:", error);
