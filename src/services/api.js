@@ -1,8 +1,6 @@
 import axios from "axios";
 import { SOCKET_SERVER_URL } from "../constants.js";
 
-console.log("SOCKET_SERVER_URL", SOCKET_SERVER_URL);
-
 export async function getSessionsByUser(userId) {
   try {
     const response = await axios.get(`${SOCKET_SERVER_URL}/session/${userId}/`);
