@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { getSessionsByUser } from "../services/api";
 import { registerTemporaryUser, getUserInfo } from "../services/api";
+import Toast from "../components/Toast";
 
 const AuthContext = createContext(null);
 
@@ -22,23 +23,41 @@ export const AuthProvider = ({ children }) => {
     return !!storedSessionId ? parseInt(JSON.parse(storedSessionId)) : null;
   });
   const [sessionLoadingStatus, setSessionLoadingStatus] = useState(false);
-  console.log("selected session", selectedSession);
+  // console.log("selected session", selectedSession);
+
+  const [toasts, setToasts] = useState([]);
+
+  const showToast = (message, type = "info") => {
+    const id = Date.now(); // simple unique ID
+    setToasts((prev) => [...prev, { id, message, type }]);
+
+    // Remove toast after 4s
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, 4000);
+  };
 
   // Check local storage, if no user exists, create one
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        if (!user) {
-          const newUserId = await registerTemporaryUser();
-          const newUser = await getUserInfo(newUserId);
-          setUser(newUser);
+        const newUserId = await registerTemporaryUser();
+
+        if (!newUserId) {
+          showToast("User cannot created. Please clear cache!", "error");
+          return;
         }
+        const newUser = await getUserInfo(newUserId);
+        setUser(newUser);
       } catch (error) {
         console.error("Failed to create user:", error);
       }
     };
 
-    fetchUser();
+    if (!user && !localStorage.getItem("user")?.user_id) {
+      fetchUser();
+      // safe to register new user
+    }
   }, []); // Run only once on component mount
 
   // Fetch sessions by user
@@ -94,9 +113,11 @@ export const AuthProvider = ({ children }) => {
         setSelectedSession,
         sessionLoadingStatus,
         setSessionLoadingStatus,
+        showToast,
       }}
     >
       {children}
+      <Toast toasts={toasts} />
     </AuthContext.Provider>
   );
 };
