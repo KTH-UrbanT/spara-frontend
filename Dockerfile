@@ -8,7 +8,11 @@ ARG VITE_SOCKET_SERVER_URL
 ENV VITE_SOCKET_SERVER_URL=$VITE_SOCKET_SERVER_URL
 
 # Install and build
-RUN npm install && npm run build
+COPY package.json package-lock.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
