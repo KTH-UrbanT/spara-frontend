@@ -1,28 +1,34 @@
-# Stage 1: Build the Vite React app
-FROM node:18 AS builder
+# ---------- Stage 1: Build the Vite app ----------
+    FROM node:18-slim AS builder
 
-WORKDIR /app
-
-# Inject build-time environment variable for Socket.IO
-ARG VITE_SOCKET_SERVER_URL
-ENV VITE_SOCKET_SERVER_URL=$VITE_SOCKET_SERVER_URL
-
-# Install and build
-COPY package.json package-lock.json ./
-RUN npm install
-
-COPY . .
-RUN npm run build
-
-# Stage 2: Serve with Nginx
-FROM nginx:alpine
-
-# Copy custom nginx config (for client-side routing fallback)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copy built frontend to Nginx web root
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Expose port and start Nginx
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+    # Use IPv4 for better compatibility with npm registry
+    ENV NODE_OPTIONS="--dns-result-order=ipv4first"
+    
+    # Ensure compatible and stable version of npm
+    RUN npm install -g npm@11.30.0
+    
+    WORKDIR /app
+    
+    # Inject Vite environment variable
+    ARG VITE_SOCKET_SERVER_URL
+    ENV VITE_SOCKET_SERVER_URL=$VITE_SOCKET_SERVER_URL
+    
+    # Copy and install dependencies
+    COPY package.json package-lock.json ./
+    RUN npm install --no-audit
+    
+    # Copy source and build the app
+    COPY . .
+    RUN npm run build
+    
+    # ---------- Stage 2: Serve with Nginx ----------
+    FROM nginx:alpine
+    
+    # Use custom Nginx config (React routing + WebSocket support)
+    COPY nginx.conf /etc/nginx/conf.d/default.conf
+    
+    # Copy built frontend
+    COPY --from=builder /app/dist /usr/share/nginx/html
+    
+    EXPOSE 80
+    CMD ["nginx", "-g", "daemon off;"]
