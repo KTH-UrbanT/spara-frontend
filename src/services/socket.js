@@ -1,5 +1,9 @@
 import { io } from "socket.io-client";
-import { SOCKET_SERVER_URL, EVENTS } from "../constants";
+import {
+  SOCKET_SERVER_URL,
+  MAX_RECONNECT_ATTEMPTS,
+  EVENTS,
+} from "../constants";
 
 // // Retrieve session ID from localStorage
 // const selectedSessionId = localStorage.getItem("selectedSession");
@@ -24,7 +28,7 @@ import { SOCKET_SERVER_URL, EVENTS } from "../constants";
 const socket = io(SOCKET_SERVER_URL, {
   auth: {},
   reconnection: true, // Enable auto-reconnection
-  reconnectionAttempts: 5, // Max reconnection attempts
+  reconnectionAttempts: MAX_RECONNECT_ATTEMPTS, // Max reconnection attempts
   transports: ["websocket"], // Use WebSocket transport
 });
 
