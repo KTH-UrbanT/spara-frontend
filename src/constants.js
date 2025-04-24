@@ -1,7 +1,7 @@
 // URLs
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-export const MS_URL = import.meta.env.MS_URL;
-export const SOCKET_SERVER_URL = import.meta.env.MS_SOCKETIO_URL;
+export const VITE_MS_URL = import.meta.env.VITE_MS_URL;
+export const SOCKET_SERVER_URL = import.meta.env.VITE_MS_SOCKETIO_URL;
 
 // App-wide constants
 export const APP_NAME = "Spara";

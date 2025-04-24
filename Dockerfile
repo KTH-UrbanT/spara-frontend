@@ -9,9 +9,12 @@
     
     WORKDIR /app
     
-    # Inject Vite environment variable
-    ARG MS_SOCKETIO_URL
-    ENV MS_SOCKETIO_URL=$MS_SOCKETIO_URL
+    # Inject Vite environment variables
+    ARG VITE_MS_URL
+    ENV VITE_MS_URL=$VITE_MS_URL
+
+    ARG VITE_MS_SOCKETIO_URL
+    ENV VITE_MS_SOCKETIO_URL=$VITE_MS_SOCKETIO_URL
     
     # Copy and install dependencies
     COPY package.json package-lock.json ./
