@@ -1,5 +1,5 @@
 # ---------- Stage 1: Build the Vite app ----------
-    FROM node:18-slim AS builder
+    FROM node:20-slim AS builder
 
     # Use IPv4 for better compatibility with npm registry
     ENV NODE_OPTIONS="--dns-result-order=ipv4first"
