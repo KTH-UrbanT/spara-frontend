@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         const result = await getSessionsByUser(user.user_id);
-        setSessions(result);
+        setSessions(result || []);
 
         if (!!result) {
           localStorage.setItem("sessions", JSON.stringify(result));
