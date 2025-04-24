@@ -5,31 +5,13 @@ import {
   EVENTS,
 } from "../constants";
 
-// // Retrieve session ID from localStorage
-// const selectedSessionId = localStorage.getItem("selectedSession");
-// const sessions = !!localStorage.getItem("sessions")
-//   ? JSON.parse(localStorage.getItem("sessions"))
-//   : null;
-// const user = !!localStorage.getItem("user")
-//   ? JSON.parse(localStorage.getItem("user"))
-//   : null;
-
-// // If selectedSessionId exists, include it in query, otherwise omit it
-// const auth = selectedSessionId
-//   ? {
-//       session_id: selectedSessionId,
-//       user_id: user.user_id,
-//       session_token: sessions?.find((s) => s.session_id == selectedSessionId)
-//         ?.session_token,
-//     }
-//   : {};
-
 // Initialize the socket connection
 const socket = io(SOCKET_SERVER_URL, {
   auth: {},
   reconnection: true, // Enable auto-reconnection
   reconnectionAttempts: MAX_RECONNECT_ATTEMPTS, // Max reconnection attempts
   transports: ["websocket"], // Use WebSocket transport
+  secure: true,
 });
 
 // Event handlers for socket connection status
