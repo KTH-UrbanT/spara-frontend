@@ -5,7 +5,7 @@
     ENV NODE_OPTIONS="--dns-result-order=ipv4first"
     
     # Ensure compatible and stable version of npm
-    RUN npm install -g npm@11.30.0
+    RUN npm install -g npm@11.3.0
     
     WORKDIR /app
     
