@@ -42,21 +42,23 @@ export const AuthProvider = ({ children }) => {
     const fetchUser = async () => {
       try {
         const newUserId = await registerTemporaryUser();
-
+  
         if (!newUserId) {
-          showToast("User cannot created. Please clear cache!", "error");
           return;
         }
+  
         const newUser = await getUserInfo(newUserId);
         setUser(newUser);
+  
       } catch (error) {
         console.error("Failed to create user:", error);
+        showToast("User cannot be created. Please clear cache!", "error");
       }
     };
 
-    if (!user && !localStorage.getItem("user")?.user_id) {
+    const localUser = localStorage.getItem("user");
+    if (!user && !(localUser && JSON.parse(localUser)?.user_id)) {
       fetchUser();
-      // safe to register new user
     }
   }, []); // Run only once on component mount
 
