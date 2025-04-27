@@ -7,7 +7,11 @@ import {
 
 // Initialize the socket connection
 const socket = io(SOCKET_SERVER_URL, {
-  auth: {},
+  auth: {
+    session_id: null,
+    user_id: null,
+    session_token: null, 
+  },
   reconnection: true, // Enable auto-reconnection
   reconnectionAttempts: MAX_RECONNECT_ATTEMPTS, // Max reconnection attempts
   transports: ["websocket"], // Use WebSocket transport
