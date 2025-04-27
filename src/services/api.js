@@ -7,7 +7,6 @@ export async function getSessionsByUser(userId) {
     return response.data;
   } catch (error) {
     console.error("Failed to fetch sessions:", error);
-    return []; // Handle error gracefully
   }
 }
 
@@ -17,7 +16,6 @@ export async function getMessagesBySession(sessionId) {
     return response.data;
   } catch (error) {
     console.error("Failed to fetch messages:", error);
-    return [];
   }
 }
 
@@ -31,7 +29,6 @@ export async function registerUser({ username, email, password }) {
     return response.data;
   } catch (error) {
     console.error("Failed to register user:", error);
-    return null;
   }
 }
 
@@ -41,7 +38,7 @@ export async function registerTemporaryUser() {
     return response.data;
   } catch (error) {
     console.error("Failed to register temporary user:", error);
-    return null;
+    throw error; 
   }
 }
 
@@ -51,6 +48,5 @@ export async function getUserInfo(userId) {
     return response.data;
   } catch (error) {
     console.error("Failed to fetch user info:", error);
-    return null;
   }
 }
