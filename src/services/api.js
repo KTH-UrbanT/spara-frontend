@@ -12,7 +12,7 @@ export async function getSessionsByUser(userId) {
 
 export async function getMessagesBySession(sessionId) {
   try {
-    const response = await axios.get(`${VITE_MS_URL}/messages/${sessionId}`);
+    const response = await axios.get(`${VITE_MS_URL}/messages/${sessionId}/`);
     return response.data;
   } catch (error) {
     console.error("Failed to fetch messages:", error);
@@ -21,7 +21,7 @@ export async function getMessagesBySession(sessionId) {
 
 export async function registerUser({ username, email, password }) {
   try {
-    const response = await axios.post(`${VITE_MS_URL}/user/register`, {
+    const response = await axios.post(`${VITE_MS_URL}/user/register/`, {
       username,
       email,
       password,
@@ -34,7 +34,7 @@ export async function registerUser({ username, email, password }) {
 
 export async function registerTemporaryUser() {
   try {
-    const response = await axios.post(`${VITE_MS_URL}/user/register/temporary`);
+    const response = await axios.post(`${VITE_MS_URL}/user/register/temporary/`);
     return response.data;
   } catch (error) {
     console.error("Failed to register temporary user:", error);
@@ -44,7 +44,7 @@ export async function registerTemporaryUser() {
 
 export async function getUserInfo(userId) {
   try {
-    const response = await axios.get(`${VITE_MS_URL}/user/${userId}`);
+    const response = await axios.get(`${VITE_MS_URL}/user/${userId}/`);
     return response.data;
   } catch (error) {
     console.error("Failed to fetch user info:", error);
