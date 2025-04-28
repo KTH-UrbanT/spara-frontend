@@ -6,9 +6,9 @@ function HomePage() {
 
   return (
     <>
-      <div className="m-t-1 hero min-h-screen">
+      <div className="hero h-full">
         <div className="hero-content text-center">
-          <div className="max-w-md">
+          <div className="max-w-xl">
             <h1 className="text-5xl font-bold dark:text-white">Hello there</h1>
             <p className="py-6 dark:text-slate-300">
               This is SPARA chatbot. Ask your questions by starting a chat.

@@ -4,7 +4,7 @@ import Chat from "../components/chat/Chat";
 
 const ChatPage = () => {
   return (
-    <div className="flex h-screen w-full max-w-screen-md flex-col items-center">
+    <div className="flex flex-col h-full w-full items-center">
       <Header title={"SPARA"} />
       <Chat />
     </div>

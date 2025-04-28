@@ -21,7 +21,7 @@ const Dialogue = ({ messages, loadingStatus }) => {
       {!!messages && messages.length > 0 ? (
         <div
           ref={scrollRef} // Reference for scrolling
-          className="dialogue h-full w-full max-w-md p-2 overflow-y-auto"
+          className="dialogue h-full w-full max-w-xl p-2 overflow-y-auto"
         >
           {messages.map((message, index) => (
             <Message
