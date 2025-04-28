@@ -1,25 +1,37 @@
-# Base Node Stage for Both Dev and Build
-FROM node:18 AS base
+# ---------- Stage 1: Build the Vite app ----------
+    FROM node:20-slim AS builder
 
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm install
-COPY . .
+    # Use IPv4 for better compatibility with npm registry
+    ENV NODE_OPTIONS="--dns-result-order=ipv4first"
+    
+    # Ensure compatible and stable version of npm
+    RUN npm install -g npm@11.3.0
+    
+    WORKDIR /app
+    
+    # Inject Vite environment variables
+    ARG VITE_MS_URL
+    ENV VITE_MS_URL=$VITE_MS_URL
 
-# Development Stage
-FROM base AS development
-CMD ["npm", "run", "dev"]
-
-# Production Build Stage
-FROM base AS build
-ARG NODE_ENV=production
-RUN npm run build
-
-# Production Serve Stage with Nginx
-FROM nginx:alpine AS production
-
-# Copy the build output to Nginx's public directory
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# Start the Nginx server
-CMD ["nginx", "-g", "daemon off;"]
+    ARG VITE_MS_SOCKETIO_URL
+    ENV VITE_MS_SOCKETIO_URL=$VITE_MS_SOCKETIO_URL
+    
+    # Copy and install dependencies
+    COPY package.json package-lock.json ./
+    RUN npm install --no-audit
+    
+    # Copy source and build the app
+    COPY . .
+    RUN npm run build
+    
+    # ---------- Stage 2: Serve with Nginx ----------
+    FROM nginx:alpine
+    
+    # Use custom Nginx config (React routing + WebSocket support)
+    COPY nginx.conf /etc/nginx/conf.d/default.conf
+    
+    # Copy built frontend
+    COPY --from=builder /app/dist /usr/share/nginx/html
+    
+    EXPOSE 80
+    CMD ["nginx", "-g", "daemon off;"]

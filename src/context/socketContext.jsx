@@ -24,41 +24,9 @@ export const SocketProvider = ({ children }) => {
   } = useAuth();
 
   useEffect(() => {
-    // const handleConnect = () => setIsConnected(true);
-    // const handleDisconnect = () => setIsConnected(false);
-
-    // socket.on("connect", handleConnect);
-    // socket.on("disconnect", handleDisconnect);
-
-    // // Listen for incoming messages
-    // const handleMessageReceive = (message) => {
-    //   console.log("Received message:", message); // Log the received message
-    // };
-
-    // const handleAnswerReceive = (answer) => {
-    //   console.log("Received answer:", answer); // Log the received answer
-    //   setMessages((prevMessages) => [
-    //     ...prevMessages.slice(0, -1), // Remove the "Loading..." message
-    //     {
-    //       id: 10001,
-    //       source: "assistant",
-    //       text: answer.content,
-    //       time: new Date().toISOString(),
-    //     },
-    //   ]);
-    // };
-
-    // listenForMessages(handleMessageReceive); // Listen for "receive_message"
-    // listenForAnswers(handleAnswerReceive); // Listen for "answer_message"
-
-    // // Cleanup listeners
-    // return () => {
-    //   socket.off("connect", handleConnect);
-    //   socket.off("disconnect", handleDisconnect);
-    //   removeMessageListener(handleMessageReceive);
-    // };
-
     if (selectedSession) {
+      // If a session is selected (-1 if a new session), connect to the socket
+
       const sessionToken = sessions?.find(
         (s) => s.session_id === selectedSession,
       )?.session_token;
@@ -116,6 +84,13 @@ export const SocketProvider = ({ children }) => {
     } else {
       console.log("No chat selected, disconnecting socket.");
       socket.disconnect();
+      setMessages([]);
+      // Reset socket auth
+      socket.auth = {
+        session_id: null,
+        user_id: null,
+        session_token: null,
+      };
     }
   }, [selectedSession]);
 

@@ -12,7 +12,6 @@ const Root = () => {
   const params = useParams();
 
   useEffect(() => {
-    console.log("IN ROOT", location, params);
     if (params.chatId) {
       setSelectedSession(parseInt(params.chatId));
     } else {
