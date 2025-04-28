@@ -1,12 +1,9 @@
-import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { HiMenu } from "react-icons/hi"; // Icons for collapse/expand
-
+import { HiMenu } from "react-icons/hi";
 import Button from "../Button";
 import { useAuth } from "../../context/authContext";
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
-  // Toggle sidebar collapse state
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
@@ -15,11 +12,11 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
 
   return (
     <div className="relative">
-      {/* Collapsed state: only show the HiMenu icon */}
+      {/* Always show Menu button */}
       {isCollapsed && (
         <div className="fixed left-4 top-4 z-50">
           <Button
-            icon={<HiMenu size={18} />}
+            icon={<HiMenu size={24} />}
             color={"btn-neutral"}
             size={"btn-sm"}
             onClick={toggleSidebar}
@@ -27,49 +24,43 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
         </div>
       )}
 
-      {/* Expanded sidebar */}
+      {/* Sidebar panel */}
       <aside
-        className={`fixed left-0 top-0 h-full w-64 transform bg-gray-800 text-white transition-transform duration-300 ease-in-out
-          ${isCollapsed ? "-translate-x-full" : "translate-x-0"}`}
+        className={`fixed left-0 top-0 h-full w-64 bg-gray-800 text-white z-40 transform transition-transform duration-300 ease-in-out
+          ${isCollapsed ? "-translate-x-full" : "translate-x-0"}
+        `}
       >
-        {/* Sidebar Header */}
         <div className="flex items-center justify-between p-4">
           <span className="text-2xl font-bold">Spara</span>
           <Button
-            icon={<HiMenu size={18} />}
+            icon={<HiMenu size={24} />}
             color={"btn-neutral"}
             size={"btn-sm"}
             onClick={toggleSidebar}
           />
         </div>
 
-        {/* Sidebar Menu Items */}
-        {/* <nav className="flex-grow">
-          <ul className="menu">
+        {/* Menu Items */}
+        <nav className="flex-grow p-4">
+          <ul className="space-y-2">
             <li>
-              <NavLink to="/">Home</NavLink>
+              <NavLink
+                to="/"
+                className="block px-2 py-1 hover:bg-gray-700 rounded"
+              >
+                Home
+              </NavLink>
             </li>
-            <li className="menu-title text-slate-500">Sessions</li>
-            <li>
-              <NavLink to="/chat">Chat</NavLink>
-            </li>
-          </ul>
-        </nav> */}
-
-        <nav className="flex-grow">
-          <ul className="menu">
-            <li>
-              <NavLink to="/">Home</NavLink>
-            </li>
-            {/* Show Sessions List if Available */}
             {sessions?.length > 0 && (
               <>
-                <li className="menu-title text-slate-500">Sessions</li>
+                <li className="text-gray-400 text-xs uppercase mt-4">
+                  Sessions
+                </li>
                 {sessions.map((session) => (
                   <li key={session.session_id}>
                     <NavLink
                       to={`/chat/${session.session_id}`}
-                      className="block px-4 py-2 hover:bg-gray-200 rounded-md"
+                      className="block px-2 py-1 hover:bg-gray-700 rounded"
                     >
                       {`Chat ${session.session_id}`}
                     </NavLink>
@@ -81,9 +72,11 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 text-center">
-          <span>Logout</span>
-        </div>
+        {/* <div className="p-4 text-center">
+          <button className="text-sm text-gray-400 hover:text-white">
+            Logout
+          </button>
+        </div> */}
       </aside>
     </div>
   );

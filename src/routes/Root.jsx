@@ -6,10 +6,24 @@ import { useAuth } from "../context/authContext";
 
 const Root = () => {
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
 
   const { setSelectedSession } = useAuth();
   const location = useLocation();
   const params = useParams();
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Clean up on unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     if (params.chatId) {
@@ -20,17 +34,22 @@ const Root = () => {
   }, [location, params]);
 
   return (
-    <div className="h-full w-screen flex flex-ro bg-gray-100 dark:bg-gray-900">
+    <div
+      className="w-screen flex flex-row bg-gray-100 dark:bg-gray-900"
+      style={{ height: windowHeight }}
+    >
       {/* Sidebar */}
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
       {/* Main Content Area */}
       <main
-        className={`flex-grow p-2 bg-gray-100 dark:bg-gray-900 transition-all duration-300 ease-in-out ${
-          isCollapsed ? "sm:ml-16 ml-0" : "sm:ml-64 ml-0"
-        }`}
+        className={`flex-grow p-2 bg-gray-100 dark:bg-gray-900 transition-all duration-300 ease-in-out
+          ${isCollapsed ? "sm:ml-0" : "sm:ml-64"}
+        `}
       >
-        <Outlet /> {/* This will render the component for the current route */}
+        <div className="flex flex-col h-full w-full p-2">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
