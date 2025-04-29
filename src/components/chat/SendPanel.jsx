@@ -36,7 +36,7 @@ const SendPanel = () => {
   return (
     <form
       onSubmit={onSend}
-      className="send-panel flex my-4 w-full max-w-md items-center"
+      className="send-panel flex my-4 w-full max-w-xl items-center"
     >
       {/* <input
         type="text"
