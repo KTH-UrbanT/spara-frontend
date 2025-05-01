@@ -23,7 +23,9 @@ const Dialogue = ({ messages, loadingStatus }) => {
           ref={scrollRef} // Reference for scrolling
           className="dialogue h-full w-full max-w-xl p-2 overflow-y-auto"
         >
-          {messages.map((message, index) => (
+          {messages.sort(
+            (a, b) => a.timestamp - b.timestamp,
+          ).map((message, index) => (
             <Message
               key={index}
               position={
