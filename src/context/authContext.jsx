@@ -23,9 +23,10 @@ export const AuthProvider = ({ children }) => {
     return !!storedSessionId ? parseInt(JSON.parse(storedSessionId)) : null;
   });
   const [sessionLoadingStatus, setSessionLoadingStatus] = useState(false);
-  // console.log("selected session", selectedSession);
 
   const [toasts, setToasts] = useState([]);
+
+  const isShareGate = window.location.pathname.startsWith("/share");
 
   const showToast = (message, type = "info") => {
     const id = Date.now(); // simple unique ID
@@ -55,6 +56,10 @@ export const AuthProvider = ({ children }) => {
         showToast("User cannot be created. Please clear cache!", "error");
       }
     };
+
+    if (isShareGate) {
+      return; // Don't create a user if we are in the ShareGate
+    }
 
     const localUser = localStorage.getItem("user");
     if (!user && !(localUser && JSON.parse(localUser)?.user_id)) {
