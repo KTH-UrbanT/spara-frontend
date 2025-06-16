@@ -9,7 +9,7 @@ export default function ShareGate() {
 
     useEffect(() => {
         const uid = search.get("uid");
-        if (!uid) return;
+        if (!uid || isNaN(uid) ) return;
 
         const user = {
             user_id: Number(uid),
