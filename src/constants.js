@@ -13,7 +13,10 @@ export const EVENTS = {
   MESSAGE_SEND: "send_message",
   MESSAGE_RECEIVE: "receive_message",
   MESSAGE_ANSWER: "answer_message",
-  SESSION_UPDATE: "session_update",
+  CREATE_NEW_SESSION: "create_session",
+  ESTABLISH_SESSION: "establish_session",
+  SESSION_CREATED: "session_created",
+  SESSION_UPDATED: "session_updated",
   USER_CONNECTED: "user_connected",
   USER_DISCONNECTED: "user_disconnected",
 };
