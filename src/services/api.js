@@ -60,3 +60,18 @@ export async function getUserInfo(userId) {
     return;
   }
 }
+
+export async function sendRating(userId, rating, message) {
+  try {
+    console.log( "User: " + userId + " is sending a " + rating + ", as rating for: " + message)
+    const response = await axios.post(
+      `${import.meta.env.VITE_SOCKET_SERVER_URL}/rating/`,
+      {userId, rating, message}
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to send rating");
+    return;
+  }
+  
+}

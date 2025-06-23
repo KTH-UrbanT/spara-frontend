@@ -8,7 +8,7 @@ function Message({ children, position, time }) {
         <time className="text-xs text-slate-400">{time}</time>
       </div>
       <div className="chat-bubble">{children}</div>
-      {position == "chat-start" && <RatePanel/>}
+      {position == "chat-start" && <RatePanel message = {children}/>}
     </div>
   );
 }

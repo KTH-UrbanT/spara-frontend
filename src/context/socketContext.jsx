@@ -134,7 +134,7 @@ export const SocketProvider = ({ children }) => {
 
   return (
     <SocketContext.Provider
-      value={{ messages, isConnected, handleSendMessage }}
+      value={{ messages, isConnected, handleSendMessage, selectedSession }}
     >
       {children}
     </SocketContext.Provider>
