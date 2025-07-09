@@ -28,6 +28,7 @@ export const SocketProvider = ({ children }) => {
     sessions,
     setSessions,
     user,
+    showToast,
     // sessionLoadingStatus, // TODO: Handle loading status for sessions
     // setSessionLoadingStatus, // TODO: Handle loading status for sessions
   } = useAuth();
@@ -102,6 +103,7 @@ export const SocketProvider = ({ children }) => {
         setSessions(result || []);
       } catch (error) {
         console.error("Failed to fetch sessions:", error);
+        showToast("Failed to get sessions of the user!", "error");
       }
 
       removeSessionCreatedListener(handleSessionCreated);
@@ -119,6 +121,8 @@ export const SocketProvider = ({ children }) => {
         sendMessage(message, session.session_id, session.session_id_int);
       } catch (error) {
         console.error("Failed to send message:", error);
+        showToast("Failed to send message!", "error");
+
       }
     };
     listenForSessionCreated(handleSessionCreated);
@@ -140,6 +144,7 @@ export const SocketProvider = ({ children }) => {
       // setSessionLoadingStatus(true);
     } catch (error) {
       console.error("Failed to send message:", error);
+      showToast("Failed to send message!", "error");
       // setSessionLoadingStatus(true);
     }
   };

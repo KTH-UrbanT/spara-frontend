@@ -57,7 +57,6 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                   Sessions
                 </li>
                 {sessions
-                  .sort((a, b) => b.session_id - a.session_id) // Sort by session_id descending
                   .sort((a, b) => b.last_accessed - a.last_accessed) // Sort by last_accessed descending
                   .map((session) => (
                     <li key={session.session_token}>

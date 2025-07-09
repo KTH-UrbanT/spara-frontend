@@ -6,7 +6,7 @@ import Button from "../Button";
 
 const SendPanel = () => {
   const { handleSendMessage, handleSendFirstMessage } = useSocket();
-  const { selectedSession } = useAuth(); // Get the selected session from the context
+  const { selectedSession, showToast } = useAuth(); // Get the selected session from the context
   const [message, setMessage] = useState("");
 
   const sendMessage = () => {
@@ -24,6 +24,8 @@ const SendPanel = () => {
       if (textarea) {
         textarea.style.height = "3rem"; // Equivalent to h-12 in Tailwind
       }
+    } else {
+      showToast("Message cannot be empty!", "error");
     }
   };
 
