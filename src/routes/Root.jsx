@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useParams } from "react-router";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar/Sidebar";
 import { useAuth } from "../context/authContext";
+import UserMenu from "../components/UserMenu";
+import ProfileMenu from "../components/modal/ProfileMenu";
 
 const Root = () => {
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -40,6 +42,11 @@ const Root = () => {
     >
       {/* Sidebar */}
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
+      {/* User Menu */}
+      <UserMenu>
+        <ProfileMenu />
+      </UserMenu>
 
       {/* Main Content Area */}
       <main
