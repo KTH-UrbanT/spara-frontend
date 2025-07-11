@@ -27,7 +27,7 @@ const Root = () => {
 
   useEffect(() => {
     if (params.chatId) {
-      setSelectedSession(parseInt(params.chatId));
+      setSelectedSession(decodeURIComponent(params.chatId));
     } else {
       setSelectedSession(null);
     }

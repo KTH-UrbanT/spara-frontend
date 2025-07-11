@@ -1,12 +1,19 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { router } from "../routes/router";
 import socket, {
   sendMessage,
+  createNewSession,
+  establishSession,
   listenForMessages,
   listenForAnswers,
   listenForSessionUpdates,
+  listenForSessionCreated,
   removeMessageListener,
-  removeSessionUpdateListener,
+  removeAnswerListener,
+  removeSessionUpdatedListener,
+  removeSessionCreatedListener,
 } from "../services/socket";
+import { getSessionsByUser } from "../services/api";
 import { useAuth } from "./authContext";
 
 const SocketContext = createContext();
@@ -17,33 +24,36 @@ export const SocketProvider = ({ children }) => {
 
   const {
     selectedSession,
+    setSelectedSession,
     sessions,
+    setSessions,
     user,
-    sessionLoadingStatus,
-    setSessionLoadingStatus,
+    showToast,
+    // sessionLoadingStatus, // TODO: Handle loading status for sessions
+    // setSessionLoadingStatus, // TODO: Handle loading status for sessions
   } = useAuth();
 
   useEffect(() => {
-    if (selectedSession) {
-      // If a session is selected (-1 if a new session), connect to the socket
-
-      const sessionToken = sessions?.find(
-        (s) => s.session_id === selectedSession,
-      )?.session_token;
-
+    if (selectedSession !== null) {
       console.log(
-        `Connecting to socket for chat: ${selectedSession} -> ${sessionToken}`,
+        `Connecting to socket for chat: ${selectedSession}`,
       );
 
       // Update session ID and connect
-      // socket.sid = !!sessionToken ? sessionToken : null;
       const chatAuth = {
-        session_id: selectedSession === -1 ? null : selectedSession,
+        session_id: selectedSession,
         user_id: user?.user_id,
-        session_token: sessionToken,
+        session_id_int: sessions?.find(
+          (s) => s.session_token === selectedSession)?.session_id ?? null,
       };
       socket.auth = chatAuth;
       socket.connect();
+
+      establishSession(
+        chatAuth.session_id,
+        chatAuth.session_id_int,
+        chatAuth.user_id
+      );
 
       // Event listeners
       const handleConnect = () => setIsConnected(true);
@@ -51,6 +61,7 @@ export const SocketProvider = ({ children }) => {
         setMessages([]);
         setIsConnected(false);
       };
+
       const handleSessionUpdate = (session) => {
         console.log("Session updated:", session);
         setMessages(session.messages);
@@ -61,7 +72,7 @@ export const SocketProvider = ({ children }) => {
       };
 
       const handleAnswerReceive = (answer) => {
-        setSessionLoadingStatus(true);
+        // setSessionLoadingStatus(false);
         console.log("Received answer:", answer);
       };
 
@@ -73,43 +84,74 @@ export const SocketProvider = ({ children }) => {
 
       return () => {
         console.log(
-          `Disconnecting from chat: ${selectedSession} -> ${sessionToken}`,
+          `Disconnecting from chat: ${selectedSession}`,
         );
         socket.off("connect", handleConnect);
         socket.off("disconnect", handleDisconnect);
         removeMessageListener(handleMessageReceive);
-        removeSessionUpdateListener(handleSessionUpdate);
+        removeAnswerListener(handleAnswerReceive);
+        removeSessionUpdatedListener(handleSessionUpdate);
         socket.disconnect();
-      };
-    } else {
-      console.log("No chat selected, disconnecting socket.");
-      socket.disconnect();
-      setMessages([]);
-      // Reset socket auth
-      socket.auth = {
-        session_id: null,
-        user_id: null,
-        session_token: null,
       };
     }
   }, [selectedSession]);
 
+  const handleSendFirstMessage = (message) => {
+    const handleSessionCreated = async (session) => {
+      try {
+        const result = await getSessionsByUser(user.user_id);
+        setSessions(result || []);
+      } catch (error) {
+        console.error("Failed to fetch sessions:", error);
+        showToast("Failed to get sessions of the user!", "error");
+      }
+
+      removeSessionCreatedListener(handleSessionCreated);
+      // socket.auth = {
+      //   ...socket.auth,
+      //   session_id: session.session_id,
+      //   session_id_int: session.session_id_int
+      // };
+
+      router.navigate(`/chat/${session.session_id}`);
+      setSelectedSession(session.session_id);
+
+      // Send the first message after session creation
+      try {
+        sendMessage(message, session.session_id, session.session_id_int);
+      } catch (error) {
+        console.error("Failed to send message:", error);
+        showToast("Failed to send message!", "error");
+
+      }
+    };
+    listenForSessionCreated(handleSessionCreated);
+
+    socket.auth = { session_id: null, user_id: user?.user_id, session_id_int: null };
+    socket.connect();
+    console.log("Temporary socket connected for new session creation.");
+
+    createNewSession(message, user?.user_id);
+    return;
+  }
+
+
   const handleSendMessage = (message) => {
     try {
-      const sessionToken = sessions?.find(
-        (s) => s.session_id === selectedSession,
-      )?.session_token;
-      sendMessage(message, user?.user_id, selectedSession, sessionToken);
-      setSessionLoadingStatus(true);
+      sendMessage(message, selectedSession, sessions?.find(
+        (s) => s.session_token === selectedSession,
+      )?.session_id ?? null);
+      // setSessionLoadingStatus(true);
     } catch (error) {
       console.error("Failed to send message:", error);
-      setSessionLoadingStatus(true);
+      showToast("Failed to send message!", "error");
+      // setSessionLoadingStatus(true);
     }
   };
 
   return (
     <SocketContext.Provider
-      value={{ messages, isConnected, handleSendMessage }}
+      value={{ messages, isConnected, handleSendMessage, handleSendFirstMessage }}
     >
       {children}
     </SocketContext.Provider>
