@@ -109,6 +109,11 @@ export const AuthProvider = ({ children }) => {
     }
   }, [selectedSession]);
 
+  // Check is user is logged in
+  const isLoggedIn = () => {
+    return !!user && (!!user.email || !!user.username);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -121,6 +126,7 @@ export const AuthProvider = ({ children }) => {
         sessionLoadingStatus,
         setSessionLoadingStatus,
         showToast,
+        isLoggedIn
       }}
     >
       {children}
