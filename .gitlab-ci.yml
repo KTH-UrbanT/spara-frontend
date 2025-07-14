@@ -1,0 +1,53 @@
+# Frontend Pipeline
+
+stages:
+  - trigger
+
+variables:
+  ASSEMBLY_PROJECT_ID: "KTH-UrbanT/spara"  # Replace with your actual assembly project ID
+
+# Trigger Assembly Pipeline when merging feature/* or fix/* branches to dev
+trigger_assembly_pipeline:
+  stage: trigger
+  image: alpine:latest
+  needs:
+    - test_frontend
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    - |
+      echo "Checking if this commit came from a feature/* or fix/* branch merge..."
+      
+      # Get the commit message to check if it's a merge commit
+      COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+      echo "Commit message: $COMMIT_MESSAGE"
+      
+      # Check if this is a merge commit from feature/* or fix/* branch
+      if echo "$COMMIT_MESSAGE" | grep -E "Merge branch '(feature|fix)/" > /dev/null; then
+        echo "This is a merge from a feature/* or fix/* branch. Triggering Assembly Pipeline..."
+        
+        # Extract the source branch name from the commit message
+        SOURCE_BRANCH=$(echo "$COMMIT_MESSAGE" | grep -oE "(feature|fix)/[^']*" | head -1)
+        echo "Source branch: $SOURCE_BRANCH"
+        
+        # Trigger the Assembly Pipeline
+        # curl -X POST \
+        #  --fail \
+        #  -F token=$ASSEMBLY_TRIGGER_TOKEN \
+        #  -F ref=dev \
+        #  -F "variables[TRIGGERED_BY]=frontend" \
+        #  -F "variables[SOURCE_BRANCH]=$SOURCE_BRANCH" \
+        #  -F "variables[FRONTEND_COMMIT_SHA]=$CI_COMMIT_SHA" \
+        #  "https://gitlab.com/api/v4/projects/$ASSEMBLY_PROJECT_ID/trigger/pipeline"
+        
+        echo "Assembly Pipeline trigger request sent successfully"
+      else
+        echo "This commit is not from a feature/* or fix/* branch merge. Skipping Assembly Pipeline trigger."
+        exit 0
+      fi
+  rules:
+    # Only trigger on dev branch commits
+    - if: '$CI_COMMIT_BRANCH == "feature/cicd" && $CI_PIPELINE_SOURCE == "push"'
+  variables:
+    # This token needs to be set in GitLab CI/CD variables
+    ASSEMBLY_TRIGGER_TOKEN: $ASSEMBLY_TRIGGER_TOKEN
