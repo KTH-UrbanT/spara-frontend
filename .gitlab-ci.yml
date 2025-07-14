@@ -10,8 +10,6 @@ variables:
 trigger_assembly_pipeline:
   stage: trigger
   image: alpine:latest
-  needs:
-    - test_frontend
   before_script:
     - apk add --no-cache curl jq
   script:
