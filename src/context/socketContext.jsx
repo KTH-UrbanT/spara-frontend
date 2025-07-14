@@ -92,6 +92,9 @@ export const SocketProvider = ({ children }) => {
         removeAnswerListener(handleAnswerReceive);
         removeSessionUpdatedListener(handleSessionUpdate);
         socket.disconnect();
+
+        // Clear messages state when disconnecting
+        setMessages([]);
       };
     }
   }, [selectedSession]);
