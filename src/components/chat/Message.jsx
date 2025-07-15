@@ -4,11 +4,15 @@ import RatePanel from './RatePanel';
 function Message({ children, position, time }) {
   return (
     <div className={`chat ${position}`}>
+      <div>
       <div className="chat-header">
         <time className="text-xs text-slate-400">{time}</time>
       </div>
-      <div className="chat-bubble">{children}</div>
-      {position == "chat-start" && <RatePanel message = {children}/>}
+      <div>
+        <div className="chat-bubble">{children}</div>
+        {position == "chat-start" && <RatePanel message = {children}/>}
+      </div>
+      </div>
     </div>
   );
 }

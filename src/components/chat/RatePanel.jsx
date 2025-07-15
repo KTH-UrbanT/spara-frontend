@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Toast from '../Toast';
 import { IoIosStarOutline, IoIosStar } from "react-icons/io";
 import { sendRating } from "../../services/api";
 import { useSocket } from "../../context/socketContext";
@@ -7,11 +8,13 @@ function RatePanel(message) {
   const [hoveredStar, setHoveredStar] = useState(0);
   const [selectedRating, setSelectedRating] = useState(0);
   const { selectedSession } = useSocket();
+  const [showToast, setShowToast] = useState(false);
 
   const handleClickedRating = async (star) => {
     const user =  JSON.parse(localStorage.getItem("user")) || null;
     const userId = user.user_id; 
     const result = await sendRating(userId ,star, message.message)    
+    setShowToast(true)
     setSelectedRating(star)
   }
   return (
@@ -30,6 +33,14 @@ function RatePanel(message) {
           )}
         </div>
       ))}
+
+       {showToast && (
+        <Toast
+          type="success"
+          message="Rating submitted!"
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </div>
   );
 }
