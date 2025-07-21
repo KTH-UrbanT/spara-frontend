@@ -1,27 +1,14 @@
-import React from 'react';
-import { useSocket } from '../context/socketContext';
-import Dialogue from '../components/chat/Dialogue';
-import SendPanel from '../components/chat/SendPanel';
-import Header from '../components/Header';
-// import Navigation from './Navigation';
+import React from "react";
+import Header from "../components/Header";
+import Chat from "../components/chat/Chat";
 
-const Chat = () => {
-  const { messages } = useSocket();  // Access messages and connection status from context
-
-  // const messages = [
-  //   { id: 1, source: "user", text: "What is your message", time: "2024-11-19T13:15:30.000Z" },
-  //   { id: 2, source: "bot", text: "This is my message", time: "2024-11-19T13:16:30.000Z" },
-  // ]
-
+const ChatPage = () => {
   return (
-    <div className="flex h-screen w-full max-w-screen-md flex-col items-center">
-      {/* <Navigation /> */}
-      {/* TODO: Add header component for pages */}
+    <div className="flex flex-col h-full w-full items-center">
       <Header title={"SPARA"} />
-      <Dialogue messages={messages} />
-      <SendPanel />
+      <Chat />
     </div>
   );
 };
 
-export default Chat;
+export default ChatPage;
