@@ -3,7 +3,6 @@ import { useLocation, useParams } from "react-router";
 import { Outlet } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { useWindowSize } from "../hooks/useWindowSize";
-import SettingsModal from "../components/modal/SettingsModal";
 import Sideabar from "../components/Sidebar/Sidebar";
 
 const Root = () => {
@@ -35,9 +34,6 @@ const Root = () => {
         isCollapsed={sidebarState}
         setIsCollapsed={setSidebarState}
       />
-
-      {/* Modals */}
-      <SettingsModal />
 
       {/* Main Content Area */}
       <main

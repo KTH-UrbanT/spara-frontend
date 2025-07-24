@@ -42,7 +42,7 @@ const SettingsModal = () => {
     return (
         <>
             {/* Trigger Button */}
-            <div className="fixed right-4 top-4 z-50">
+            <div>
                 <Button
                     icon={<IoMdSettings size={24} />}
                     color={"btn-neutral"}
@@ -58,8 +58,10 @@ const SettingsModal = () => {
                 ref={modalRef}
             >
                 <div className="modal-box">
-                    <h1 className="font-bold text-2xl">Settings</h1>
                     <ul className="space-y-2">
+                        <li>
+                            <h1 className="font-bold text-2xl">Settings</h1>
+                        </li>
                         <li>
                         <fieldset className="fieldset">
                             <legend className="fieldset-legend">Notification audio</legend>
