@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAuth } from "../../context/authContext";
 import useModal from "../../hooks/useModal";
 import Button from "../Button";
@@ -6,6 +7,9 @@ import { HiOutlineMail } from "react-icons/hi";
 
 
 const ProfileMenu = () => {
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
 
     const {
         isLoggedIn
@@ -16,6 +20,10 @@ const ProfileMenu = () => {
         handleOpenClick,
         handleCloseClick
     } = useModal();
+
+    const handleLoginClick = async () => {
+        // Implement login logic here
+    }
 
     return (
         <>
@@ -34,14 +42,41 @@ const ProfileMenu = () => {
                         ref={modalRef}
                     >
                         <div className="modal-box">
-                            <h1 className="font-bold text-2xl">Login</h1>
-
-                            <label className="validator">
-                                <HiOutlineMail />
-                                <input type="text" placeholder="Primary" className="input input-primary" />
-                            </label>
-
+                            <ul className="space-y-2">
+                                <li>
+                                    <h1 className="font-bold text-2xl">Login</h1>
+                                </li>
+                                <li>
+                                    <label className="input input-bordered input-primary flex items-center gap-2 join-item">
+                                        <HiOutlineMail />
+                                        <input
+                                            type="email"
+                                            placeholder="mail@example.com"
+                                            required
+                                            className="w-full"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                        />
+                                    </label>
+                                </li>
+                                <li>
+                                    <label className="input input-bordered input-primary flex items-center gap-2 join-item">
+                                        <HiLockOpen />
+                                        <input
+                                            type="password"
+                                            placeholder="Password"
+                                            required
+                                            className="w-full"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                        />
+                                    </label>
+                                </li>
+                                <li>
+                                </li>
+                            </ul>
                             <div className="modal-action">
+                                <Button text={"Login"} onClick={handleLoginClick} />
                                 <Button text={"Close"} onClick={handleCloseClick} />
                             </div>
                         </div>
