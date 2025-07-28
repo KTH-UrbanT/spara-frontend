@@ -1,16 +1,22 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "react-router";
-import { Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar/Sidebar";
 import { useAuth } from "../context/authContext";
 import UserMenu from "../components/UserMenu";
-import ProfileMenu from "../components/modal/ProfileMenu";
+import LoginModal from "../components/modal/LoginModal";
+import { HiUserAdd } from "react-icons/hi";
+import Button from "../components/Button";
+import AvatarMenu from "../components/modal/AvatarMenu";
 
 const Root = () => {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
 
-  const { setSelectedSession } = useAuth();
+  const {
+    setSelectedSession,
+    isLoggedIn
+  } = useAuth();
   const location = useLocation();
   const params = useParams();
 
@@ -45,7 +51,14 @@ const Root = () => {
 
       {/* User Menu */}
       <UserMenu>
-        <ProfileMenu />
+        { isLoggedIn() ? (
+          <AvatarMenu />
+        ) : (
+          <>
+            <LoginModal />
+            <NavLink to="/signup"><Button text={'Sign up'} size={'btn-sm'} color={'btn-secondary'} icon={<HiUserAdd />} onClick={() => {}} /></NavLink>
+          </>
+        )}
       </UserMenu>
 
       {/* Main Content Area */}
