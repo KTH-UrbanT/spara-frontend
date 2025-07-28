@@ -3,6 +3,7 @@ import ChatPage from "../pages/Chat";
 import HomePage from "../pages/HomePage";
 import ShareGate from "../pages/ShareGate";
 import Root from "./Root";
+import SignupPage from "../pages/Signup";
 
 export const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ export const router = createBrowserRouter([
       { 
         path: "share",
         element: <ShareGate /> 
+      },
+      {
+        path: "signup", // Route for SignupPage
+        element: <SignupPage />,
       },
     ],
   },

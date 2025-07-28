@@ -8,7 +8,7 @@
  */
 const UserMenu = ({ children }) => {
     return (
-        <div className="fixed right-4 top-4 z-50 flex flex-col gap-x-1">
+        <div className="fixed right-4 top-4 z-50 flex flex-row gap-x-2">
             {children}
         </div>
     );

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { getSessionsByUser } from "../services/api";
+import { getSessionsByUser, registerUser } from "../services/api";
 import { registerTemporaryUser, getUserInfo } from "../services/api";
 import Toast from "../components/Toast";
 
@@ -114,6 +114,42 @@ export const AuthProvider = ({ children }) => {
     return !!user && (!!user.email || !!user.username);
   };
 
+  // Sign up
+  const signUp = async (username, email, password) => {
+    // We assume the inputs are already validated before calling this function
+    try {
+      const newUserId = await registerUser({username, email, password});
+      if (!newUserId) {
+        throw new Error("User registration failed");
+      }
+      const newUser = await getUserInfo(newUserId);
+      setUser(newUser);
+      showToast("User registered successfully!", "success");
+    } catch (error) {
+      console.error("Failed to register user:", error);
+      showToast("User registration failed. Please try again.", "error");
+      throw error; // Propagate the error for further handling if needed
+    }
+  };
+
+  // Logout
+  const logout = () => {
+    setUser(null);
+    setSessions([]);
+    setSelectedSession(null);
+    localStorage.removeItem("user");
+    localStorage.removeItem("sessions");
+    localStorage.removeItem("selectedSession");
+    showToast("Logged out successfully!", "success");
+  };
+
+  // Login
+  const login = async (email, password) => {
+    // We assume the inputs are already validated before calling this function
+    
+    // Awaiting for the login logic to be implemented in the api...
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -126,7 +162,9 @@ export const AuthProvider = ({ children }) => {
         sessionLoadingStatus,
         setSessionLoadingStatus,
         showToast,
-        isLoggedIn
+        isLoggedIn,
+        signUp,
+        logout
       }}
     >
       {children}
