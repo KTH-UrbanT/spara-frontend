@@ -93,6 +93,13 @@ const SettingsModal = () => {
                             </select>
                         </fieldset>
                         </li>
+                        <li>
+                            <div className="divider"></div>
+                            <div className="text-sm">
+                                <p className="text-gray-500 text-xs">Deployment Tag: {import.meta.env.VITE_DEPLOYMENT_TAG}</p>
+                                <p className="text-gray-500 text-xs">Branch: {import.meta.env.VITE_BRANCH}</p>
+                            </div>
+                        </li>
                     </ul>
                     <div className="modal-action">
                         <Button text={"Close"} onClick={handleCloseClick} />
