@@ -1,12 +1,14 @@
 // import Button from "../components/Button";
 // import { useNavigate } from "react-router-dom";
 import SendPanel from "../components/chat/SendPanel";
+import Header from "../components/Header";
 
 function HomePage() {
   // const navigate = useNavigate();
 
   return (
     <>
+      <Header title={"SPARA"} />
       <div className="hero h-full">
         <div className="hero-content text-center">
           <div className="max-w-xl">
