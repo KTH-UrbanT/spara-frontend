@@ -1,16 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { HiPaperAirplane } from "react-icons/hi";
+import { useAuth } from "../../context/authContext";
 import { useSocket } from "../../context/socketContext";
 import Button from "../Button";
 
 const SendPanel = () => {
-  const { handleSendMessage } = useSocket(); // Access the send message function from context
+  const { handleSendMessage, handleSendFirstMessage } = useSocket();
+  const { selectedSession, showToast } = useAuth(); // Get the selected session from the context
   const [message, setMessage] = useState("");
 
   const sendMessage = () => {
+    // Check if the message is not empty
     if (message.trim()) {
-      // Check if the message is not empty
-      handleSendMessage(message); // Send the message through the context function
+      if (selectedSession === null) {
+        handleSendFirstMessage(message); // Handle sending the first message when no session is selected
+      } else {
+        handleSendMessage(message); // Send the message in the current session
+      }
       setMessage(""); // Clear the input after sending
 
       // Reset the height of the textarea
@@ -18,6 +24,8 @@ const SendPanel = () => {
       if (textarea) {
         textarea.style.height = "3rem"; // Equivalent to h-12 in Tailwind
       }
+    } else {
+      showToast("Message cannot be empty!", "error");
     }
   };
 
@@ -32,7 +40,7 @@ const SendPanel = () => {
     setMessage(textarea.value);
   };
 
-  
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       // Trigger send message on pressing “Enter” (unless Shift is held)

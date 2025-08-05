@@ -3,7 +3,6 @@ import { useLocation, useParams } from "react-router";
 import { Outlet } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { useWindowSize } from "../hooks/useWindowSize";
-import SettingsModal from "../components/modal/SettingsModal";
 import Sideabar from "../components/Sidebar/Sidebar";
 
 const Root = () => {
@@ -18,7 +17,7 @@ const Root = () => {
 
   useEffect(() => {
     if (params.chatId) {
-      setSelectedSession(parseInt(params.chatId));
+      setSelectedSession(decodeURIComponent(params.chatId));
     } else {
       setSelectedSession(null);
     }
@@ -35,9 +34,6 @@ const Root = () => {
         isCollapsed={sidebarState}
         setIsCollapsed={setSidebarState}
       />
-
-      {/* Modals */}
-      <SettingsModal />
 
       {/* Main Content Area */}
       <main
