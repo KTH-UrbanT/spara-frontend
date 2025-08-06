@@ -3,18 +3,20 @@ import Toast from '../Toast';
 import { IoIosStarOutline, IoIosStar } from "react-icons/io";
 import { sendRating } from "../../services/api";
 import { useSocket } from "../../context/socketContext";
+import { useAuth } from "../../context/authContext";
 
 function RatePanel(message) {
   const [hoveredStar, setHoveredStar] = useState(0);
   const [selectedRating, setSelectedRating] = useState(0);
   const { selectedSession } = useSocket();
-  const [showToast, setShowToast] = useState(false);
+  const {showToast} = useAuth();
 
   const handleClickedRating = async (star) => {
     const user =  JSON.parse(localStorage.getItem("user")) || null;
     const userId = user.user_id; 
-    const result = await sendRating(userId ,star, message.message)    
-    setShowToast(true)
+    const sessionIdInt = JSON.parse(localStorage.getItem("session_id_int"));
+    const result = await sendRating(userId ,star, message.message, sessionIdInt)    
+    showToast("Rating sent", "error");
     setSelectedRating(star)
   }
   return (
