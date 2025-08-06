@@ -1,8 +1,7 @@
 // URLs
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
-export const SOCKET_SERVER_URL =
-  import.meta.env.VITE_SOCKET_SERVER_URL || "http://localhost:8000";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+export const VITE_MS_URL = import.meta.env.VITE_MS_URL;
+export const SOCKET_SERVER_URL = import.meta.env.VITE_MS_SOCKETIO_URL;
 
 // App-wide constants
 export const APP_NAME = "Spara";
@@ -14,7 +13,10 @@ export const EVENTS = {
   MESSAGE_SEND: "send_message",
   MESSAGE_RECEIVE: "receive_message",
   MESSAGE_ANSWER: "answer_message",
-  SESSION_UPDATE: "session_update",
+  CREATE_NEW_SESSION: "create_session",
+  ESTABLISH_SESSION: "establish_session",
+  SESSION_CREATED: "session_created",
+  SESSION_UPDATED: "session_updated",
   USER_CONNECTED: "user_connected",
   USER_DISCONNECTED: "user_disconnected",
 };

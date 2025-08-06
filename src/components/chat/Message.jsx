@@ -1,4 +1,5 @@
-import React from 'react';
+import React from "react";
+import ReactMarkdown from "react-markdown";
 import RatePanel from './RatePanel';
 
 function Message({ children, position, time }) {
@@ -9,11 +10,11 @@ function Message({ children, position, time }) {
         <time className="text-xs text-slate-400">{time}</time>
       </div>
       <div>
-        <div className="chat-bubble">{children}</div>
+        <ReactMarkdown>{children}</ReactMarkdown>
+      </div>
         {position == "chat-start" && <RatePanel message = {children}/>}
       </div>
       </div>
-    </div>
   );
 }
 

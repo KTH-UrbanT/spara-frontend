@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { getSessionsByUser } from "../services/api";
 import { registerTemporaryUser, getUserInfo } from "../services/api";
+import Toast from "../components/Toast";
 
 const AuthContext = createContext(null);
 
@@ -22,23 +23,48 @@ export const AuthProvider = ({ children }) => {
     return !!storedSessionId ? parseInt(JSON.parse(storedSessionId)) : null;
   });
   const [sessionLoadingStatus, setSessionLoadingStatus] = useState(false);
-  console.log("selected session", selectedSession);
+
+  const [toasts, setToasts] = useState([]);
+
+  const isShareGate = window.location.pathname.startsWith("/share");
+
+  const showToast = (message, type = "info") => {
+    const id = Date.now(); // simple unique ID
+    setToasts((prev) => [...prev, { id, message, type }]);
+
+    // Remove toast after 4s
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, 4000);
+  };
 
   // Check local storage, if no user exists, create one
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        if (!user) {
-          const newUserId = await registerTemporaryUser();
-          const newUser = await getUserInfo(newUserId);
-          setUser(newUser);
+        const newUserId = await registerTemporaryUser();
+  
+        if (!newUserId) {
+          return;
         }
+  
+        const newUser = await getUserInfo(newUserId);
+        setUser(newUser);
+  
       } catch (error) {
         console.error("Failed to create user:", error);
+        showToast("User cannot be created. Please clear cache!", "error");
       }
     };
 
-    fetchUser();
+    if (isShareGate) {
+      return; // Don't create a user if we are in the ShareGate
+    }
+
+    const localUser = localStorage.getItem("user");
+    if (!user && !(localUser && JSON.parse(localUser)?.user_id)) {
+      fetchUser();
+    }
   }, []); // Run only once on component mount
 
   // Fetch sessions by user
@@ -50,7 +76,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         const result = await getSessionsByUser(user.user_id);
-        setSessions(result);
+        setSessions(result || []);
 
         if (!!result) {
           localStorage.setItem("sessions", JSON.stringify(result));
@@ -94,9 +120,11 @@ export const AuthProvider = ({ children }) => {
         setSelectedSession,
         sessionLoadingStatus,
         setSessionLoadingStatus,
+        showToast,
       }}
     >
       {children}
+      <Toast toasts={toasts} />
     </AuthContext.Provider>
   );
 };

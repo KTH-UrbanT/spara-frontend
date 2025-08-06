@@ -1,31 +1,21 @@
 import { io } from "socket.io-client";
-import { SOCKET_SERVER_URL, EVENTS } from "../constants";
-
-// // Retrieve session ID from localStorage
-// const selectedSessionId = localStorage.getItem("selectedSession");
-// const sessions = !!localStorage.getItem("sessions")
-//   ? JSON.parse(localStorage.getItem("sessions"))
-//   : null;
-// const user = !!localStorage.getItem("user")
-//   ? JSON.parse(localStorage.getItem("user"))
-//   : null;
-
-// // If selectedSessionId exists, include it in query, otherwise omit it
-// const auth = selectedSessionId
-//   ? {
-//       session_id: selectedSessionId,
-//       user_id: user.user_id,
-//       session_token: sessions?.find((s) => s.session_id == selectedSessionId)
-//         ?.session_token,
-//     }
-//   : {};
+import {
+  SOCKET_SERVER_URL,
+  MAX_RECONNECT_ATTEMPTS,
+  EVENTS,
+} from "../constants";
 
 // Initialize the socket connection
 const socket = io(SOCKET_SERVER_URL, {
-  auth: {},
+  auth: {
+    session_id: null,
+    user_id: null,
+    session_id_int: null, // Use session_id_int for db primary key 
+  },
   reconnection: true, // Enable auto-reconnection
-  reconnectionAttempts: 5, // Max reconnection attempts
+  reconnectionAttempts: MAX_RECONNECT_ATTEMPTS, // Max reconnection attempts
   transports: ["websocket"], // Use WebSocket transport
+  secure: true,
 });
 
 // Event handlers for socket connection status
@@ -45,13 +35,25 @@ socket.on("connect_error", (error) => {
   console.error("Connection error:", error);
 });
 
-socket.on("session_update", (session) => {
+socket.on("session_updated", (session) => {
   console.log("Session updated:", session);
 });
 
+socket.on("session_created", (session) => {
+  console.log("Session created:", session);
+});
+
 // Event handling functions
-export const sendMessage = (message, userId, sessionId, sessionToken) => {
-  socket.emit(EVENTS.MESSAGE_SEND, message, userId, sessionId, sessionToken);
+export const sendMessage = (message, sessionId, sessionIdInt) => {
+  socket.emit(EVENTS.MESSAGE_SEND, message, sessionId, sessionIdInt);
+};
+
+export const createNewSession = (message, userId) => {
+  socket.emit(EVENTS.CREATE_NEW_SESSION, message, userId);
+};
+
+export const establishSession = (sessionId, sessionIdInt, userId) => {
+  socket.emit(EVENTS.ESTABLISH_SESSION, sessionId, sessionIdInt, userId);
 };
 
 export const listenForMessages = (callback) => {
@@ -63,17 +65,29 @@ export const listenForAnswers = (callback) => {
 };
 
 export const listenForSessionUpdates = (callback) => {
-  socket.on(EVENTS.SESSION_UPDATE, callback);
+  socket.on(EVENTS.SESSION_UPDATED, callback);
 };
+
+export const listenForSessionCreated = (callback) => {
+  socket.on(EVENTS.SESSION_CREATED, callback);
+}
 
 // Cleanup function to remove listeners
 export const removeMessageListener = (callback) => {
   socket.off(EVENTS.MESSAGE_RECEIVE, callback);
 };
 
-export const removeSessionUpdateListener = (callback) => {
-  socket.off(EVENTS.SESSION_UPDATE, callback);
+export const removeAnswerListener = (callback) => {
+  socket.off(EVENTS.MESSAGE_ANSWER, callback);
 };
+
+export const removeSessionUpdatedListener = (callback) => {
+  socket.off(EVENTS.SESSION_UPDATED, callback);
+};
+
+export const removeSessionCreatedListener = (callback) => {
+  socket.off(EVENTS.SESSION_CREATED, callback);
+}
 
 // Export socket instance and helper functions
 export default socket;
