@@ -63,8 +63,7 @@ const SettingsModal = () => {
                             <h1 className="font-bold text-2xl">Settings</h1>
                         </li>
                         <li>
-                        <fieldset className="fieldset">
-                            <legend className="fieldset-legend">Notification audio</legend>
+                            <label className="label">Notification audio</label>
                             <input
                                 type="checkbox"
                                 id="notification-audio"
@@ -72,11 +71,9 @@ const SettingsModal = () => {
                                 onChange={(e) => setNotificationAudio(e.target.checked)}
                                 className="toggle toggle-primary"
                             />
-                        </fieldset>
                         </li>
                         <li>
-                        <fieldset className="fieldset">
-                            <legend className="fieldset-legend">Theme</legend>
+                            <label className="label">Theme</label>
                             <select
                                 className="select select-primary"
                                 value={theme}
@@ -91,7 +88,6 @@ const SettingsModal = () => {
                                 </option>
                                 ))}
                             </select>
-                        </fieldset>
                         </li>
                         <li>
                             <div className="divider"></div>
