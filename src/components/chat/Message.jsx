@@ -9,7 +9,7 @@ function Message({ children, position, time }) {
       <div className="chat-header">
         <time className="text-xs text-slate-400">{time}</time>
       </div>
-      <div>
+      <div className="chat-bubble">
         <ReactMarkdown>{children}</ReactMarkdown>
       </div>
         {position == "chat-start" && <RatePanel message = {children}/>}
