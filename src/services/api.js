@@ -50,3 +50,18 @@ export async function getUserInfo(userId) {
     console.error("Failed to fetch user info:", error);
   }
 }
+
+export async function sendRating(userId, rating, message, sessionIdInt) {
+  try {
+    console.log( "User: " + userId + " is sending a " + rating + ", as rating for: " + message)
+    const response = await axios.post(
+      `${VITE_MS_URL}/rating/`,
+      {userId, rating, message, sessionIdInt}
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to send rating" + error);
+    return;
+  }
+  
+}

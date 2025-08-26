@@ -108,6 +108,7 @@ export const SocketProvider = ({ children }) => {
         console.error("Failed to fetch sessions:", error);
         showToast("Failed to get sessions of the user!", "error");
       }
+      localStorage.setItem("session_id_int", JSON.stringify(session.session_id_int));
 
       removeSessionCreatedListener(handleSessionCreated);
       // socket.auth = {
@@ -154,7 +155,7 @@ export const SocketProvider = ({ children }) => {
 
   return (
     <SocketContext.Provider
-      value={{ messages, isConnected, handleSendMessage, handleSendFirstMessage }}
+      value={{ messages, isConnected, handleSendMessage, selectedSession, handleSendFirstMessage }}
     >
       {children}
     </SocketContext.Provider>

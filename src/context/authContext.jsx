@@ -109,6 +109,19 @@ export const AuthProvider = ({ children }) => {
     }
   }, [selectedSession]);
 
+  useEffect(() => {
+  if (selectedSession && sessions.length > 0) {
+    const selected = sessions.find(s => s.session_token === selectedSession);
+    const sessionIdInt = selected?.session_id ?? null;
+    if (sessionIdInt !== null) {
+      localStorage.setItem("session_id_int", JSON.stringify(sessionIdInt));
+    }
+  } else {
+    localStorage.removeItem("session_id_int");
+  }
+  }, [selectedSession, sessions]);
+
+
   return (
     <AuthContext.Provider
       value={{
