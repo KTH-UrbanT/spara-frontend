@@ -1,23 +1,33 @@
 import axios from "axios";
 import { VITE_MS_URL } from "../constants.js";
 
-export async function getSessionsByUser(userId) {
-  try {
-    const response = await axios.get(`${VITE_MS_URL}/session/${userId}/`);
-    return response.data;
-  } catch (error) {
-    console.error("Failed to fetch sessions:", error);
-  }
-}
+// Helpers
 
-export async function getMessagesBySession(sessionId) {
+const getAuthHeaders = () => {
   try {
-    const response = await axios.get(`${VITE_MS_URL}/messages/${sessionId}/`);
-    return response.data;
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = user?.token;
+    
+    if (!token) {
+      console.warn("No token found in localStorage");
+      return {
+        'Content-Type': 'application/json'
+      };
+    }
+    
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
   } catch (error) {
-    console.error("Failed to fetch messages:", error);
+    console.error("Error getting auth headers:", error);
+    return {
+      'Content-Type': 'application/json'
+    };
   }
-}
+};
+
+// API Calls - Unauthenticated
 
 export async function registerUser({ username, email, password }) {
   try {
@@ -42,12 +52,75 @@ export async function registerTemporaryUser() {
   }
 }
 
+export async function registerTemporaryUserToRegular({userId, username, email, password }) {
+  try {
+    const response = await axios.post(
+      `${VITE_MS_URL}/user/register/temporary-to-regular/${userId}/`,
+      { username, email, password }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to convert temporary user to regular:", error);
+    throw error;
+  }
+}
+
+export async function login({ username, password }) {
+  try {
+    const response = await axios.post(`${VITE_MS_URL}/user/login/`, 
+      {
+        grant_type: "password",
+        username,
+        password,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to login:", error);
+    throw error; 
+  }
+}
+
+export async function loginTemporaryUser(userId) {
+  try {
+    const response = await axios.post(`${VITE_MS_URL}/user/login/temporary/`, {
+      temp_user_id: userId,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to login temporary user:", error);
+    throw error;
+  }
+}
+
+// API Calls - Authenticated
+
+export async function getSessionsByUser(userId) {
+  try {
+    const response = await axios.get(`${VITE_MS_URL}/session/${userId}/`, {
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch sessions:", error);
+    throw error;
+  }
+}
+
 export async function getUserInfo(userId) {
   try {
-    const response = await axios.get(`${VITE_MS_URL}/user/${userId}/`);
+    const response = await axios.get(`${VITE_MS_URL}/user/${userId}/`, {
+      headers: getAuthHeaders()
+    });
     return response.data;
   } catch (error) {
     console.error("Failed to fetch user info:", error);
+    throw error;
   }
 }
 
@@ -56,12 +129,12 @@ export async function sendRating(userId, rating, message, sessionIdInt) {
     console.log( "User: " + userId + " is sending a " + rating + ", as rating for: " + message)
     const response = await axios.post(
       `${VITE_MS_URL}/rating/`,
-      {userId, rating, message, sessionIdInt}
-    );
+      {userId, rating, message, sessionIdInt}, {
+      headers: getAuthHeaders()
+    });
     return response.data;
   } catch (error) {
     console.error("Failed to send rating" + error);
     return;
   }
-  
 }
