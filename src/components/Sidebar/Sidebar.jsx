@@ -1,14 +1,20 @@
-import { NavLink } from "react-router-dom";
-import { HiMenu } from "react-icons/hi";
+import { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { HiMenu, HiOutlineUserCircle, HiLogout, HiOutlineLogin, HiOutlineUserAdd } from "react-icons/hi";
 import Button from "../Button";
 import { useAuth } from "../../context/authContext";
+import LogoutModal from "../modal/LogoutModal";
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
 
-  const { sessions } = useAuth();
+  // Pull sessions + user + logout from your auth context
+  const { sessions, user } = useAuth();
+  const navigate = useNavigate();
+
+  const [isLogoutModalOpen, setLogoutModalOpen] = useState(false);
 
   return (
     <div className="relative">
@@ -74,13 +80,83 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
         </nav>
 
         {/* Footer */}
-        {/* <div className="p-4 text-center">
-          <button className="text-sm text-gray-400 hover:text-white">
-            Logout
-          </button>
-        </div> */}
-      </aside>
-    </div>
+
+        {/* User Section */}
+        <div className="p-3 border-t border-gray-700 relative">
+          <div className="dropdown dropdown-top w-full">
+
+            <Button
+              icon={<HiOutlineUserCircle />}
+              text={
+                <span className="flex w-full items-center justify-between">
+                  <span className="truncate">{user?.username || "Guest"}</span>
+                </span>
+              }
+              size="btn-sm w-full justify-start gap-3"
+              color="bg-gray-700 hover:bg-gray-600"
+              textColor="text-white"
+              iconSize={18}
+            />
+
+            <ul
+              tabIndex={0}
+              className="dropdown-content menu bg-base-200 text-base-content rounded-box z-50 w-60 p-2 shadow-md border border-base-300"
+            >
+              <li className="menu-title px-2 py-1 text-s text-base-content/60">Account</li>
+              <li className="menu-title px-2 py-1 text-xs text-base-content/60">{!!user?.email ? user.email : "guest"}</li>
+              {
+                !!user?.temporary_user && user.temporary_user ? (
+                  <>
+                    <li className="p-1">
+                      <Button
+                        text="Register"
+                        icon={<HiOutlineUserAdd />}
+                        onClick={() => navigate('/register')}
+                        color="bg-transparent hover:bg-base-300"
+                        textColor="text-base-content"
+                        size="w-full justify-start"
+                        iconSize={16}
+                      />
+                    </li>
+                    <li className="p-1">
+                      <Button
+                        text="Login"
+                        icon={<HiOutlineLogin />}
+                        onClick={() => navigate('/login')}
+                        color="bg-transparent hover:bg-base-300"
+                        textColor="text-base-content"
+                        size="w-full justify-start"
+                        iconSize={16}
+                      />
+                    </li>
+                  </>
+                ) : (
+                  <li className="p-1">
+                    <Button
+                      text="Logout"
+                      icon={<HiLogout />}
+                      onClick={() => setLogoutModalOpen(true)}
+                      color="bg-transparent hover:bg-base-300"
+                      textColor="text-base-content"
+                      size="w-full justify-start"
+                      iconSize={16}
+                    />
+                  </li>
+                )
+              }
+            </ul>
+          </div>
+        </div>
+      </aside >
+
+      {/* Logout Modal */}
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setLogoutModalOpen(false)}
+      />
+    </div >
+
+
   );
 };
 
