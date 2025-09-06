@@ -7,6 +7,7 @@ const Button = ({
   size,
   color = 'bg-secondary dark:bg-primary', // Default background color
   textColor = 'text-white', // Default text color
+  borderColor = 'border-transparent', // Default border color
   iconSize = 22,
   props
 }) => {
@@ -15,7 +16,7 @@ const Button = ({
       onClick={onClick}
       className={
         //  ${hoverColor} ${focusColor}
-        `btn border-transparent rounded-lg ${!!icon && !text && 'btn-square'} ${color} ${textColor} ${size}`
+        `btn rounded-lg ${!!icon && !text && 'btn-square'} ${color} ${textColor} border-2 ${borderColor} ${size}`
       }
       {...props}
     >
