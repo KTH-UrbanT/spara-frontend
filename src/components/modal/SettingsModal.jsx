@@ -23,21 +23,12 @@ const SettingsModal = () => {
     const handleCloseClick = () => {
         modalRef.current.close();
     }
+
     const handleKeyDown = (e) => {
         if (e.key === "Escape") {
             modalRef.current.close();
         }
     }
-    // Attach event listeners for closing the modal
-    useRef(() => {
-        const modal = modalRef.current;
-        modal.addEventListener("keydown", handleKeyDown);
-
-        return () => {
-            modal.removeEventListener("keydown", handleKeyDown);
-        };
-    }
-    , []);
 
     return (
         <>
@@ -56,14 +47,19 @@ const SettingsModal = () => {
                 id="settings_modal"
                 className="modal"
                 ref={modalRef}
+                onKeyDown={handleKeyDown}
             >
                 <div className="modal-box">
-                    <ul className="space-y-2">
-                        <li>
-                            <h1 className="font-bold text-2xl">Settings</h1>
-                        </li>
-                        <li>
-                            <label className="label">Notification audio</label>
+                    {/* Header */}
+                    <div className="flex justify-between items-center mb-4">
+                        <h1 className="text-xl font-bold">Settings</h1>
+                    </div>
+
+                    {/* Settings */}
+                    <div className="space-y-6">
+                        {/* Notification Audio */}
+                        <div className="flex justify-between items-center">
+                            <span>Notification audio</span>
                             <input
                                 type="checkbox"
                                 id="notification-audio"
@@ -71,36 +67,49 @@ const SettingsModal = () => {
                                 onChange={(e) => setNotificationAudio(e.target.checked)}
                                 className="toggle toggle-primary"
                             />
-                        </li>
-                        <li>
-                            <label className="label">Theme</label>
+                        </div>
+
+                        {/* Theme */}
+                        <div className="flex justify-between">
+                            <label className="block mb-2">Theme</label>
                             <select
-                                className="select select-primary"
+                                className="select select-bordered"
                                 value={theme}
                                 onChange={(e) => setTheme(e.target.value)}
                             >
                                 {themes.map((theme, key) => (
-                                <option
-                                    key={key}
-                                    value={theme}
-                                >
-                                    {theme.charAt(0).toUpperCase() + theme.slice(1)}
-                                </option>
+                                    <option
+                                        key={key}
+                                        value={theme}
+                                    >
+                                        {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                                    </option>
                                 ))}
                             </select>
-                        </li>
-                        <li>
-                            <div className="divider"></div>
-                            <div className="text-sm">
-                                <p className="text-gray-500 text-xs">Deployment Tag: {import.meta.env.VITE_DEPLOYMENT_TAG}</p>
-                                <p className="text-gray-500 text-xs">Branch: {import.meta.env.VITE_BRANCH}</p>
+                        </div>
+
+                        {/* App Info */}
+                        <div className="border-t pt-4 mt-4">
+                            <div className="text-sm text-gray-500 space-y-1">
+                                <p>Deployment: {import.meta.env.VITE_DEPLOYMENT_TAG || 'N/A'}</p>
+                                <p>Branch: {import.meta.env.VITE_BRANCH || 'N/A'}</p>
                             </div>
-                        </li>
-                    </ul>
+                        </div>
+                    </div>
+
+                    {/* Close Button */}
                     <div className="modal-action">
-                        <Button text={"Close"} onClick={handleCloseClick} />
+                        <Button
+                            text="Close"
+                            onClick={handleCloseClick}
+                            color="btn-neutral"
+                        />
                     </div>
                 </div>
+
+                <form method="dialog" className="modal-backdrop">
+                    <button>close</button>
+                </form>
             </dialog>
         </>
     );
