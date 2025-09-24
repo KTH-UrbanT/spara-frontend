@@ -24,7 +24,10 @@ const Root = () => {
   }, [location, params]);
 
   // Hide sidebar on /login or /register
-  const hideSidebar = location.pathname === "/login" || location.pathname === "/register";
+  const hideSidebar =
+    location.pathname === "/login" ||
+    location.pathname === "/register" ||
+    location.pathname.startsWith("/demo");
 
   useEffect(() => {
     if (hideSidebar) {
