@@ -57,12 +57,15 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                 New Chat
               </NavLink>
             </li>
-            {sessions?.length > 0 && (
-              <>
-                <li className="text-gray-400 text-xs uppercase mt-4">
-                  Sessions
-                </li>
-                {sessions
+
+
+            <li className="text-gray-400 text-xs uppercase mt-4">
+              Sessions
+            </li>
+            {(!!sessions && sessions?.length > 0) ??
+              // Render sessions if available
+              (
+                sessions
                   .sort((a, b) => b.last_accessed - a.last_accessed) // Sort by last_accessed descending
                   .map((session) => (
                     <li key={session.session_token}>
@@ -73,9 +76,10 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                         {`Chat ${session.session_id}`}
                       </NavLink>
                     </li>
-                  ))}
-              </>
-            )}
+                  ))
+              )
+            }
+
           </ul>
         </nav>
 
