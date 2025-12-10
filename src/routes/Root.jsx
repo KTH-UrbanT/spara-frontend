@@ -23,6 +23,15 @@ const Root = () => {
     }
   }, [location, params]);
 
+  // Hide sidebar on /login or /register
+  const hideSidebar = location.pathname === "/login" || location.pathname === "/register";
+
+  useEffect(() => {
+    if (hideSidebar) {
+      setSidebarState(true); // Collapse sidebar when hiding
+    }
+  }, [hideSidebar]);
+
   return (
     <div
       className="w-screen flex flex-row bg-gray-100 dark:bg-gray-900 night:bg-gray-800"
@@ -30,10 +39,12 @@ const Root = () => {
     >
 
       {/* Sidebar */}
-      <Sideabar
-        isCollapsed={sidebarState}
-        setIsCollapsed={setSidebarState}
-      />
+      {!hideSidebar &&
+        <Sideabar
+          isCollapsed={sidebarState}
+          setIsCollapsed={setSidebarState}
+        />
+      }
 
       {/* Main Content Area */}
       <main
