@@ -5,6 +5,8 @@ import ShareGate from "../pages/ShareGate";
 import Root from "./Root";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import Demo from "../pages/Demo";
+import DemoGeneratorAdmin from "../pages/DemoGeneratorAdmin";
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +24,14 @@ export const router = createBrowserRouter([
       {
         path: "share",
         element: <ShareGate />
+      },
+      {
+        path: "demo",
+        element: <Demo />
+      },
+      {
+        path: "demo-admin/generate/QL6OeOp4luNfDNOz9hdRwgiWBxwuuh", // random string to avoid public access
+        element: <DemoGeneratorAdmin />
       },
       {
         path: "login",

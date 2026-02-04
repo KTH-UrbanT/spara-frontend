@@ -106,7 +106,6 @@ export const SocketProvider = ({ children }) => {
         setSessions(result || []);
       } catch (error) {
         console.error("Failed to fetch sessions:", error);
-        showToast("Failed to get sessions of the user!", "error");
       }
       localStorage.setItem("session_id_int", JSON.stringify(session.session_id_int));
 
