@@ -1,8 +1,25 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import RatePanel from './RatePanel';
+import { downloadDraftReport } from "../../services/api";
+import { useAuth } from "../../context/authContext";
 
-function Message({ children, position, time }) {
+function Message({ children, position, time, message }) {
+  const { showToast } = useAuth();
+  const report = message?.downloadable_report;
+
+  const handleDownload = async () => {
+    if (!report?.report_id) {
+      return;
+    }
+
+    try {
+      await downloadDraftReport(report.report_id, report.file_name);
+    } catch (error) {
+      showToast("Failed to download the draft report", "error");
+    }
+  };
+
   return (
     <div className={`chat ${position}`}>
       <div>
@@ -12,7 +29,16 @@ function Message({ children, position, time }) {
       <div className="chat-bubble">
         <ReactMarkdown>{children}</ReactMarkdown>
       </div>
-        {position == "chat-start" && <RatePanel message = {children}/>}
+        {report?.report_id && (
+          <button
+            type="button"
+            className="btn btn-sm mt-2"
+            onClick={handleDownload}
+          >
+            Download Draft Report
+          </button>
+        )}
+        {message?.role === "assistant" && <RatePanel message={message} />}
       </div>
       </div>
   );

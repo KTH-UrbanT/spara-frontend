@@ -51,6 +51,7 @@ const Dialogue = ({ messages, loadingStatus }) => {
           {messages.map((message, index) => (
             <Message
               key={index}
+              message={message}
               position={
                 message.role === "assistant" ? "chat-start" : "chat-end"
               }

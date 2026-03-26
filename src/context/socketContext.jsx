@@ -99,6 +99,31 @@ export const SocketProvider = ({ children }) => {
     }
   }, [selectedSession]);
 
+  const updateMessageRating = (targetMessage, rating, ratingId = null) => {
+    setMessages((currentMessages) =>
+      currentMessages.map((message) => {
+        const sameMessageId =
+          targetMessage?.message_id != null &&
+          message?.message_id === targetMessage.message_id;
+        const sameFallbackIdentity =
+          targetMessage?.message_id == null &&
+          message?.role === targetMessage?.role &&
+          message?.content === targetMessage?.content &&
+          message?.timestamp === targetMessage?.timestamp;
+
+        if (!sameMessageId && !sameFallbackIdentity) {
+          return message;
+        }
+
+        return {
+          ...message,
+          rating,
+          rating_id: ratingId ?? message?.rating_id ?? null,
+        };
+      })
+    );
+  };
+
   const handleSendFirstMessage = (message) => {
     const handleSessionCreated = async (session) => {
       try {
@@ -155,7 +180,14 @@ export const SocketProvider = ({ children }) => {
 
   return (
     <SocketContext.Provider
-      value={{ messages, isConnected, handleSendMessage, selectedSession, handleSendFirstMessage }}
+      value={{
+        messages,
+        isConnected,
+        handleSendMessage,
+        selectedSession,
+        handleSendFirstMessage,
+        updateMessageRating,
+      }}
     >
       {children}
     </SocketContext.Provider>

@@ -135,6 +135,30 @@ export async function sendRating(userId, rating, message, sessionIdInt) {
     return response.data;
   } catch (error) {
     console.error("Failed to send rating" + error);
-    return;
+    throw error;
+  }
+}
+
+export async function downloadDraftReport(reportId, fileName = "draft_energy_report.md") {
+  try {
+    const response = await axios.get(
+      `${VITE_MS_URL}/reports/${reportId}/download/`,
+      {
+        headers: getAuthHeaders(),
+        responseType: "blob",
+      }
+    );
+
+    const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error("Failed to download draft report:", error);
+    throw error;
   }
 }
