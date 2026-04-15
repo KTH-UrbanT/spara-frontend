@@ -139,7 +139,7 @@ export async function sendRating(userId, rating, message, sessionIdInt) {
   }
 }
 
-export async function downloadDraftReport(reportId, fileName = "draft_energy_report.md") {
+export async function downloadDraftReport(reportId, fileName = "draft_energy_report.txt") {
   try {
     const response = await axios.get(
       `${VITE_MS_URL}/reports/${reportId}/download/`,
@@ -149,7 +149,10 @@ export async function downloadDraftReport(reportId, fileName = "draft_energy_rep
       }
     );
 
-    const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+    const blob = new Blob([response.data], {
+      type: response.headers["content-type"] || "text/plain;charset=utf-8",
+    });
+    const blobUrl = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = blobUrl;
     link.setAttribute("download", fileName);
