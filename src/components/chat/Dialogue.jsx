@@ -10,6 +10,7 @@ const convertTimestamp = (timestamp) => {
 const Dialogue = ({ messages, loadingStatus }) => {
   const scrollRef = useRef(null);
   const { notificationAudio } = useSettings();
+  const hasMessages = messages && messages.length > 0;
 
   // As a simple solution to only play the notification sound on reply,
   // we can use a state variable to track if the user is to expect a reply.
@@ -22,7 +23,7 @@ const Dialogue = ({ messages, loadingStatus }) => {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
     // Set isActive to true after a user have sent a message
-    if (messages && messages.length > 0 && messages[messages.length - 1].role === "user") {
+    if (hasMessages && messages[messages.length - 1].role === "user") {
       setPlayNotification(true);
     }
     // Play a notification sound if audio is enabled,
@@ -30,7 +31,7 @@ const Dialogue = ({ messages, loadingStatus }) => {
     if (
       playNotification &&
       notificationAudio &&
-      messages.length > 0 &&
+      hasMessages &&
       messages[messages.length - 1].role === "assistant"
     ) {
       setPlayNotification(false); // Reset playNotification to false after playing
@@ -39,16 +40,16 @@ const Dialogue = ({ messages, loadingStatus }) => {
         console.error("Error playing notification audio:", error);
       });
     }
-  }, [messages]);
+  }, [messages, hasMessages, notificationAudio, playNotification]);
 
   return (
     <>
-      {!!messages && messages.length > 0 ? (
+      {hasMessages || loadingStatus?.loading ? (
         <div
           ref={scrollRef} // Reference for scrolling
           className="dialogue h-full w-full max-w-xl p-2 overflow-y-auto"
         >
-          {messages.map((message, index) => (
+          {messages?.map((message, index) => (
             <Message
               key={index}
               message={message}
@@ -60,10 +61,12 @@ const Dialogue = ({ messages, loadingStatus }) => {
               {message.content}
             </Message>
           ))}
-          {loadingStatus && loadingStatus.loading ? (
-            <Message position="chat-start" time={null}>
-              <span className="loading loading-dots loading-sm"></span>
-            </Message>
+          {loadingStatus?.loading ? (
+            <div className="chat chat-start">
+              <div className="chat-bubble">
+                <span className="loading loading-dots loading-sm"></span>
+              </div>
+            </div>
           ) : null}
         </div>
       ) : (

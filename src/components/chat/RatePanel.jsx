@@ -39,9 +39,9 @@ function RatePanel({ message }) {
           onClick={() => handleClickedRating(star)}
         >
           {star <= (hoveredStar || selectedRating) ? (
-            <IoIosStar size={30} color="gold" />
+            <IoIosStar size={20} color="gold" />
           ) : (
-            <IoIosStarOutline size={30} color="gray" />
+            <IoIosStarOutline size={20} color="gray" />
           )}
         </div>
       ))}

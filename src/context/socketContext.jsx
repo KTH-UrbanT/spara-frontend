@@ -29,9 +29,19 @@ export const SocketProvider = ({ children }) => {
     setSessions,
     user,
     showToast,
-    // sessionLoadingStatus, // TODO: Handle loading status for sessions
-    // setSessionLoadingStatus, // TODO: Handle loading status for sessions
+    setSessionLoadingStatus,
   } = useAuth();
+
+  const setSessionIsLoading = (sessionId, loading) => {
+    if (!sessionId) {
+      return;
+    }
+
+    setSessionLoadingStatus((currentStatus) => ({
+      ...(currentStatus || {}),
+      [sessionId]: { loading },
+    }));
+  };
 
   useEffect(() => {
     if (selectedSession !== null) {
@@ -65,15 +75,23 @@ export const SocketProvider = ({ children }) => {
       const handleSessionUpdate = (session) => {
         console.log("Session updated:", session);
         setMessages(session.messages);
+
+        const lastMessage = session.messages?.[session.messages.length - 1];
+        if (lastMessage?.role === "assistant") {
+          setSessionIsLoading(selectedSession, false);
+        }
       };
 
       const handleMessageReceive = (message) => {
         console.log("Received message:", message);
+        if (message?.role === "assistant") {
+          setSessionIsLoading(selectedSession, false);
+        }
       };
 
       const handleAnswerReceive = (answer) => {
-        // setSessionLoadingStatus(false);
         console.log("Received answer:", answer);
+        setSessionIsLoading(selectedSession, false);
       };
 
       socket.on("connect", handleConnect);
@@ -147,10 +165,12 @@ export const SocketProvider = ({ children }) => {
 
       // Send the first message after session creation
       try {
+        setSessionIsLoading(session.session_id, true);
         sendMessage(message, session.session_id, session.session_id_int);
       } catch (error) {
         console.error("Failed to send message:", error);
         showToast("Failed to send message!", "error");
+        setSessionIsLoading(session.session_id, false);
 
       }
     };
@@ -167,14 +187,14 @@ export const SocketProvider = ({ children }) => {
 
   const handleSendMessage = (message) => {
     try {
+      setSessionIsLoading(selectedSession, true);
       sendMessage(message, selectedSession, sessions?.find(
         (s) => s.session_token === selectedSession,
       )?.session_id ?? null);
-      // setSessionLoadingStatus(true);
     } catch (error) {
       console.error("Failed to send message:", error);
       showToast("Failed to send message!", "error");
-      // setSessionLoadingStatus(true);
+      setSessionIsLoading(selectedSession, false);
     }
   };
 

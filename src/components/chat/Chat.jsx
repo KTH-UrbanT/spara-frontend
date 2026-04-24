@@ -13,7 +13,7 @@ const Chat = () => {
     <>
       <Dialogue
         messages={messages}
-        loadingStatus={sessionLoadingStatus[selectedSession]}
+        loadingStatus={sessionLoadingStatus?.[selectedSession]}
       />
       <SendPanel />
     </>

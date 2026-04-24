@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
     const storedSessionId = localStorage.getItem("selectedSession");
     return !!storedSessionId ? parseInt(JSON.parse(storedSessionId)) : null;
   });
-  const [sessionLoadingStatus, setSessionLoadingStatus] = useState(false);
+  const [sessionLoadingStatus, setSessionLoadingStatus] = useState({});
   const [isCreatingUser, setIsCreatingUser] = useState(false);
 
   const [toasts, setToasts] = useState([]);

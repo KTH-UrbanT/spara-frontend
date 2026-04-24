@@ -27,6 +27,24 @@ const getAuthHeaders = () => {
   }
 };
 
+const getFilenameFromContentDisposition = (contentDisposition) => {
+  if (!contentDisposition) {
+    return null;
+  }
+
+  const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) {
+    try {
+      return decodeURIComponent(utf8Match[1]);
+    } catch {
+      return utf8Match[1];
+    }
+  }
+
+  const plainMatch = contentDisposition.match(/filename="?([^"]+)"?/i);
+  return plainMatch?.[1] || null;
+};
+
 // API Calls - Unauthenticated
 
 export async function registerUser({ username, email, password }) {
@@ -155,7 +173,12 @@ export async function downloadDraftReport(reportId, fileName = "draft_energy_rep
     const blobUrl = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = blobUrl;
-    link.setAttribute("download", fileName);
+    const headerFileName = getFilenameFromContentDisposition(response.headers["content-disposition"]);
+    const preferredFileName =
+      headerFileName ||
+      (fileName && fileName !== "building_id_not_available.txt" ? fileName : null) ||
+      "draft_energy_report.txt";
+    link.setAttribute("download", preferredFileName);
     document.body.appendChild(link);
     link.click();
     link.remove();
