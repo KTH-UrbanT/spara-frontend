@@ -4,8 +4,20 @@ import { useSettings } from "../../context/settingsContext";
 import LoadingSpinner from "./Spinner";
 
 const convertTimestamp = (timestamp) => {
-  const date = new Date(timestamp * 1000);
-  return date.toLocaleString();
+  if (timestamp == null || timestamp === "") {
+    return "";
+  }
+
+  let date;
+  if (typeof timestamp === "number") {
+    date = new Date(timestamp * 1000);
+  } else if (typeof timestamp === "string" && /^\d+(\.\d+)?$/.test(timestamp)) {
+    date = new Date(Number(timestamp) * 1000);
+  } else {
+    date = new Date(timestamp);
+  }
+
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleString();
 };
 
 const Dialogue = ({ messages, loadingStatus }) => {

@@ -7,7 +7,6 @@ import SendPanel from "./SendPanel";
 const Chat = () => {
   const { messages } = useSocket();
   const { selectedSession, sessionLoadingStatus } = useAuth();
-  console.log("messages in chat: ", messages);
 
   return (
     <>

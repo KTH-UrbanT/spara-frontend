@@ -73,8 +73,7 @@ export const SocketProvider = ({ children }) => {
       };
 
       const handleSessionUpdate = (session) => {
-        console.log("Session updated:", session);
-        setMessages(session.messages);
+        setMessages(Array.isArray(session?.messages) ? session.messages : []);
 
         const lastMessage = session.messages?.[session.messages.length - 1];
         if (lastMessage?.role === "assistant") {
