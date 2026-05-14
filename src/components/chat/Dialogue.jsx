@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Message from "./Message";
 import { useSettings } from "../../context/settingsContext";
+import LoadingSpinner from "./Spinner";
 
 const convertTimestamp = (timestamp) => {
   const date = new Date(timestamp * 1000);
@@ -62,10 +63,8 @@ const Dialogue = ({ messages, loadingStatus }) => {
             </Message>
           ))}
           {loadingStatus?.loading ? (
-            <div className="chat chat-start">
-              <div className="chat-bubble">
-                <span className="loading loading-dots loading-sm"></span>
-              </div>
+            <div className="flex justify-start p-2">
+              <LoadingSpinner />
             </div>
           ) : null}
         </div>
