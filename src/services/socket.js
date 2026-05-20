@@ -7,6 +7,7 @@ import {
 
 // Initialize the socket connection
 const socket = io(SOCKET_SERVER_URL, {
+  autoConnect: false,
   auth: {
     session_id: null,
     user_id: null,
@@ -33,7 +34,7 @@ socket.on("reconnect_attempt", (attempt) => {
 });
 
 socket.on("connect_error", (error) => {
-  console.error("Connection error:", error);
+  console.error("Connection error:", error?.message || error, error?.data || "");
 });
 
 socket.on("session_updated", (session) => {
