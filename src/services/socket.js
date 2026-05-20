@@ -20,8 +20,8 @@ const socket = io(SOCKET_SERVER_URL, {
 });
 
 // Event handlers for socket connection status
-socket.on("connect", (sid) => {
-  console.log("Connected to socket server with session ID:", sid);
+socket.on("connect", () => {
+  console.log("Connected to socket server with socket ID:", socket.id);
 });
 
 socket.on("disconnect", () => {
