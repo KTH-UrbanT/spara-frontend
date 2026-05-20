@@ -121,7 +121,6 @@ export const SocketProvider = ({ children }) => {
         removeMessageListener(handleMessageReceive);
         removeAnswerListener(handleAnswerReceive);
         removeSessionUpdatedListener(handleSessionUpdate);
-        socket.disconnect();
       };
     }
 
