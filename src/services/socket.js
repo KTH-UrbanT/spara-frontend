@@ -10,6 +10,7 @@ const socket = io(SOCKET_SERVER_URL, {
   auth: {
     session_id: null,
     user_id: null,
+    email: null,
     session_id_int: null, // Use session_id_int for db primary key 
   },
   reconnection: true, // Enable auto-reconnection
@@ -48,12 +49,12 @@ export const sendMessage = (message, sessionId, sessionIdInt) => {
   socket.emit(EVENTS.MESSAGE_SEND, message, sessionId, sessionIdInt);
 };
 
-export const createNewSession = (message, userId) => {
-  socket.emit(EVENTS.CREATE_NEW_SESSION, message, userId);
+export const createNewSession = (message, userId, email) => {
+  socket.emit(EVENTS.CREATE_NEW_SESSION, message, userId, email);
 };
 
-export const establishSession = (sessionId, sessionIdInt, userId) => {
-  socket.emit(EVENTS.ESTABLISH_SESSION, sessionId, sessionIdInt, userId);
+export const establishSession = (sessionId, sessionIdInt, userId, email) => {
+  socket.emit(EVENTS.ESTABLISH_SESSION, sessionId, sessionIdInt, userId, email);
 };
 
 export const listenForMessages = (callback) => {

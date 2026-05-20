@@ -60,9 +60,11 @@ export async function registerUser({ username, email, password }) {
   }
 }
 
-export async function registerTemporaryUser() {
+export async function registerTemporaryUser(email) {
   try {
-    const response = await axios.post(`${VITE_MS_URL}/user/register/temporary/`);
+    const response = await axios.post(`${VITE_MS_URL}/user/register/temporary/`, {
+      email,
+    });
     return response.data;
   } catch (error) {
     console.error("Failed to register temporary user:", error);
@@ -185,6 +187,65 @@ export async function downloadDraftReport(reportId, fileName = "draft_energy_rep
     window.URL.revokeObjectURL(blobUrl);
   } catch (error) {
     console.error("Failed to download draft report:", error);
+    throw error;
+  }
+}
+
+export async function downloadEvaluationRecords({
+  format = "jsonl",
+  userId = null,
+  sessionId = null,
+} = {}) {
+  try {
+    const params = new URLSearchParams({ format });
+    if (userId != null) {
+      params.set("user_id", userId);
+    }
+    if (sessionId != null) {
+      params.set("session_id", sessionId);
+    }
+
+    const response = await axios.get(
+      `${VITE_MS_URL}/evaluation/export/?${params.toString()}`,
+      {
+        headers: getAuthHeaders(),
+        responseType: "blob",
+      }
+    );
+
+    const blob = new Blob([response.data], {
+      type: response.headers["content-type"] || "application/octet-stream",
+    });
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    const headerFileName = getFilenameFromContentDisposition(response.headers["content-disposition"]);
+    link.setAttribute(
+      "download",
+      headerFileName || `spara-evaluation-records.${format}`
+    );
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error("Failed to download evaluation records:", error);
+    throw error;
+  }
+}
+
+export async function sendAdvisorReview(review) {
+  try {
+    const response = await axios.post(
+      `${VITE_MS_URL}/evaluation/advisor-review/`,
+      review,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to send advisor review:", error);
     throw error;
   }
 }

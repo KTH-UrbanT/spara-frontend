@@ -1,18 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
+import ContinueWithEmailModal from "../components/modal/ContinueWithEmailModal";
 import { useAuth } from "../context/authContext";
 import { registerUser, registerTemporaryUserToRegular } from "../services/api";
 
 const RegisterPage = () => {
     const { showToast, user } = useAuth();
     const navigate = useNavigate();
+    const [isEmailModalOpen, setEmailModalOpen] = useState(false);
 
     const [form, setForm] = useState({
         username: "",
-        email: "",
+        email: user?.email || "",
         password: "",
     });
+
+    useEffect(() => {
+        if (user?.email) {
+            setForm((current) => ({ ...current, email: user.email }));
+        }
+    }, [user?.email]);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -110,12 +118,13 @@ const RegisterPage = () => {
                     <div className="divider my-3 text-xs">OR</div>
 
                     <Button
-                        text="Continue as Guest"
-                        onClick={() => navigate('/')}
+                        text="Continue with Email"
+                        onClick={() => setEmailModalOpen(true)}
                         size="w-full"
                         color="btn-outline"
                         borderColor="border-primary"
                         textColor="text-primary"
+                        type="button"
                     />
 
                     <div className="text-center mt-3">
@@ -124,6 +133,10 @@ const RegisterPage = () => {
                     </div>
                 </div>
             </div>
+            <ContinueWithEmailModal
+                isOpen={isEmailModalOpen}
+                onClose={() => setEmailModalOpen(false)}
+            />
         </div>
     );
 };

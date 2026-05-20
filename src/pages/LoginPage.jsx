@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
+import ContinueWithEmailModal from "../components/modal/ContinueWithEmailModal";
 import { useAuth } from "../context/authContext";
 import { login } from "../services/api";
 
@@ -9,6 +10,7 @@ const LoginPage = () => {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [isEmailModalOpen, setEmailModalOpen] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -86,12 +88,13 @@ const LoginPage = () => {
                     <div className="divider my-3 text-xs">OR</div>
 
                     <Button
-                        text="Continue as Guest"
-                        onClick={() => navigate('/')}
+                        text="Continue with Email"
+                        onClick={() => setEmailModalOpen(true)}
                         size="w-full"
                         color="btn-outline"
                         borderColor="border-primary"
                         textColor="text-primary"
+                        type="button"
                     />
 
                     <div className="text-center mt-3">
@@ -100,6 +103,10 @@ const LoginPage = () => {
                     </div>
                 </div>
             </div>
+            <ContinueWithEmailModal
+                isOpen={isEmailModalOpen}
+                onClose={() => setEmailModalOpen(false)}
+            />
         </div>
     );
 };

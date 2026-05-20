@@ -9,7 +9,8 @@ const Button = ({
   textColor = 'text-white', // Default text color
   borderColor = 'border-transparent', // Default border color
   iconSize = 22,
-  props
+  props = {},
+  ...buttonProps
 }) => {
   return (
     <button
@@ -19,6 +20,7 @@ const Button = ({
         `btn rounded-lg ${!!icon && !text && 'btn-square'} ${color} ${textColor} border-2 ${borderColor} ${size}`
       }
       {...props}
+      {...buttonProps}
     >
       {/* Render icon if provided */}
       {icon && React.cloneElement(icon, { size: iconSize })}

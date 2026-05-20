@@ -1,19 +1,27 @@
 import React, { useState } from "react";
 import { HiPaperAirplane } from "react-icons/hi";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/authContext";
 import { useSocket } from "../../context/socketContext";
 import Button from "../Button";
 
 const SendPanel = () => {
   const { handleSendMessage, handleSendFirstMessage } = useSocket();
-  const { selectedSession, showToast } = useAuth(); // Get the selected session from the context
+  const { selectedSession, showToast, user } = useAuth(); // Get the selected session from the context
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     // Check if the message is not empty
     if (message.trim()) {
+      if (!user?.email) {
+        showToast("Please log in or register to start a chat.", "error");
+        navigate("/login");
+        return;
+      }
+
       if (selectedSession === null) {
-        handleSendFirstMessage(message); // Handle sending the first message when no session is selected
+        handleSendFirstMessage(message, user); // Handle sending the first message when no session is selected
       } else {
         handleSendMessage(message); // Send the message in the current session
       }
@@ -49,9 +57,9 @@ const SendPanel = () => {
     }
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    sendMessage();
+    await sendMessage();
   };
 
   return (

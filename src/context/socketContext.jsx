@@ -43,8 +43,17 @@ export const SocketProvider = ({ children }) => {
     }));
   };
 
+  const sessionList = Array.isArray(sessions) ? sessions : [];
+  const selectedSessionInt =
+    sessionList.find((session) => session.session_token === selectedSession)?.session_id ??
+    null;
+
   useEffect(() => {
     if (selectedSession !== null) {
+      if (!user?.user_id || !user?.email || !selectedSessionInt) {
+        return undefined;
+      }
+
       console.log(
         `Connecting to socket for chat: ${selectedSession}`,
       );
@@ -53,8 +62,8 @@ export const SocketProvider = ({ children }) => {
       const chatAuth = {
         session_id: selectedSession,
         user_id: user?.user_id,
-        session_id_int: sessions?.find(
-          (s) => s.session_token === selectedSession)?.session_id ?? null,
+        email: user?.email,
+        session_id_int: selectedSessionInt,
       };
       socket.auth = chatAuth;
       socket.connect();
@@ -62,18 +71,22 @@ export const SocketProvider = ({ children }) => {
       establishSession(
         chatAuth.session_id,
         chatAuth.session_id_int,
-        chatAuth.user_id
+        chatAuth.user_id,
+        chatAuth.email
       );
 
       // Event listeners
       const handleConnect = () => setIsConnected(true);
       const handleDisconnect = () => {
-        setMessages([]);
         setIsConnected(false);
       };
 
       const handleSessionUpdate = (session) => {
-        setMessages(Array.isArray(session?.messages) ? session.messages : []);
+        if (!session || session.session_id !== selectedSession) {
+          return;
+        }
+
+        setMessages(Array.isArray(session.messages) ? session.messages : []);
 
         const lastMessage = session.messages?.[session.messages.length - 1];
         if (lastMessage?.role === "assistant") {
@@ -109,12 +122,12 @@ export const SocketProvider = ({ children }) => {
         removeAnswerListener(handleAnswerReceive);
         removeSessionUpdatedListener(handleSessionUpdate);
         socket.disconnect();
-
-        // Clear messages state when disconnecting
-        setMessages([]);
       };
     }
-  }, [selectedSession]);
+
+    setMessages([]);
+    return undefined;
+  }, [selectedSession, selectedSessionInt, user?.user_id, user?.email]);
 
   const updateMessageRating = (targetMessage, rating, ratingId = null) => {
     setMessages((currentMessages) =>
@@ -141,10 +154,15 @@ export const SocketProvider = ({ children }) => {
     );
   };
 
-  const handleSendFirstMessage = (message) => {
+  const handleSendFirstMessage = (message, identityUser = user) => {
+    if (!identityUser?.user_id || !identityUser?.email) {
+      showToast("Email is required to start a chat.", "error");
+      return;
+    }
+
     const handleSessionCreated = async (session) => {
       try {
-        const result = await getSessionsByUser(user.user_id);
+        const result = await getSessionsByUser(identityUser.user_id);
         setSessions(result || []);
       } catch (error) {
         console.error("Failed to fetch sessions:", error);
@@ -175,21 +193,34 @@ export const SocketProvider = ({ children }) => {
     };
     listenForSessionCreated(handleSessionCreated);
 
-    socket.auth = { session_id: null, user_id: user?.user_id, session_id_int: null };
+    socket.auth = {
+      session_id: null,
+      user_id: identityUser.user_id,
+      email: identityUser.email,
+      session_id_int: null,
+    };
     socket.connect();
     console.log("Temporary socket connected for new session creation.");
 
-    createNewSession(message, user?.user_id);
+    createNewSession(message, identityUser.user_id, identityUser.email);
     return;
   }
 
 
   const handleSendMessage = (message) => {
     try {
+      if (!selectedSessionInt) {
+        showToast("The chat session is still loading. Please try again in a moment.", "error");
+        return;
+      }
+
+      if (!user?.email) {
+        showToast("Email is required to send a message.", "error");
+        return;
+      }
+
       setSessionIsLoading(selectedSession, true);
-      sendMessage(message, selectedSession, sessions?.find(
-        (s) => s.session_token === selectedSession,
-      )?.session_id ?? null);
+      sendMessage(message, selectedSession, selectedSessionInt);
     } catch (error) {
       console.error("Failed to send message:", error);
       showToast("Failed to send message!", "error");

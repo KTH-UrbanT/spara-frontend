@@ -89,7 +89,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
               icon={<HiOutlineUserCircle />}
               text={
                 <span className="flex w-full items-center justify-between">
-                  <span className="truncate">{user?.username || "Guest"}</span>
+                  <span className="truncate">{user?.username || "Account"}</span>
                 </span>
               }
               size="btn-sm w-full justify-start gap-3"
@@ -103,7 +103,6 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
               className="dropdown-content menu bg-base-200 text-base-content rounded-box z-50 w-60 p-2 shadow-md border border-base-300"
             >
               <li className="menu-title px-2 py-1 text-s text-base-content/60">Account</li>
-              <li className="menu-title px-2 py-1 text-xs text-base-content/60">{!!user?.email ? user.email : "guest"}</li>
               {
                 !!user?.temporary_user && user.temporary_user ? (
                   <>

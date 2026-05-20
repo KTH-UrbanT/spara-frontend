@@ -1,34 +1,41 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { router } from "../routes/router";
 import { getSessionsByUser } from "../services/api";
-import { registerTemporaryUser, getUserInfo, loginTemporaryUser } from "../services/api";
+import { registerTemporaryUser, loginTemporaryUser } from "../services/api";
 import Toast from "../components/Toast";
 
 const AuthContext = createContext(null);
 
+const readJsonFromStorage = (key, fallback) => {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    localStorage.removeItem(key);
+    return fallback;
+  }
+};
+
+const readArrayFromStorage = (key) => {
+  const value = readJsonFromStorage(key, []);
+  return Array.isArray(value) ? value : [];
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("user")) || null;
-    } catch {
-      return null;
-    }
+    return readJsonFromStorage("user", null);
   });
 
   const [sessions, setSessions] = useState(() => {
-    const storedSessions = localStorage.getItem("sessions");
-    return !!storedSessions ? JSON.parse(storedSessions) : [];
+    return readArrayFromStorage("sessions");
   });
   const [selectedSession, setSelectedSession] = useState(() => {
-    const storedSessionId = localStorage.getItem("selectedSession");
-    return !!storedSessionId ? parseInt(JSON.parse(storedSessionId)) : null;
+    return readJsonFromStorage("selectedSession", null);
   });
   const [sessionLoadingStatus, setSessionLoadingStatus] = useState({});
   const [isCreatingUser, setIsCreatingUser] = useState(false);
 
   const [toasts, setToasts] = useState([]);
-
-  const isShareGate = window.location.pathname.startsWith("/share");
 
   const showToast = (message, type) => {
     const id = Date.now(); // simple unique ID
@@ -55,7 +62,14 @@ export const AuthProvider = ({ children }) => {
         console.log("Re-authenticating temporary user:", currentUser.user_id);
         showToast("Session expired. Re-authenticating...", "warning");
 
-        const new_user = await loginTemporaryUser(currentUser.user_id);
+        const loginResponse = await loginTemporaryUser(currentUser.user_id);
+        const new_user = {
+          user_id: loginResponse.user_id,
+          email: loginResponse.email || currentUser.email,
+          username: loginResponse.username || null,
+          token: loginResponse.access_token,
+          temporary_user: loginResponse.temporary_user,
+        };
 
         console.log("Temporary user re-authenticated successfully");
         setUser(new_user);
@@ -87,75 +101,45 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("session_id_int");
   };
 
-  const checkIfCreateTemporaryUser = () => {
-    // Check if we should create a temporary user
-    if (isShareGate) return false; // Don't create a user if we are in the ShareGate
-    if (isCreatingUser) return false; // Prevent multiple simultaneous user creation
+  const continueWithEmail = async (email) => {
+    if (isCreatingUser) return null;
 
-    const localUser = localStorage.getItem("user");
-
-    // If no user in state and no valid user in localStorage, create temp user
-    if (!user) {
-      if (!localUser) return true;
-
-      try {
-        const parsedUser = JSON.parse(localUser);
-        // Check if the parsed user has a valid user_id
-        return !parsedUser?.user_id;
-      } catch {
-        // If parsing fails, localStorage is corrupted, create new user
-        return true;
-      }
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    if (!normalizedEmail) {
+      showToast("Email is required.", "error");
+      return null;
     }
 
-    return false;
-  };
-
-  // Check local storage, if no user exists, create one
-  useEffect(() => {
-    const createTemporaryUser = async () => {
-      if (!checkIfCreateTemporaryUser()) return;
-
-      setIsCreatingUser(true);
-
-      try {
-        console.log("Creating temporary user...");
-        const newUserId = await registerTemporaryUser();
-
-        if (!newUserId) {
-          showToast("Failed to create temporary user", "error");
-          return;
-        }
-
-        // Login the temporary user to get token
-        try {
-          const loginResponse = await loginTemporaryUser(newUserId);
-          console.log("Temporary user logged in:", loginResponse?.user_id);
-
-          // Update user with token information
-          const userWithToken = {
-            user_id: newUserId,
-            email: null,
-            username: null,
-            token: loginResponse.access_token,
-            temporary_user: loginResponse.temporary_user
-          };
-
-          setUser(userWithToken);
-        } catch (loginError) {
-          console.error("Failed to login temporary user:", loginError);
-          showToast("Failed to authenticate temporary user", "error");
-        }
-      } catch (error) {
-        console.error("Failed to create user:", error);
-        showToast("User cannot be created. Please clear cache!", "error");
-      } finally {
-        setIsCreatingUser(false);
+    setIsCreatingUser(true);
+    try {
+      const registration = await registerTemporaryUser(normalizedEmail);
+      const userId = registration?.user_id ?? registration;
+      if (!userId) {
+        showToast("Could not continue with that email.", "error");
+        return null;
       }
-    };
 
-    createTemporaryUser();
-  }, [user]);
+      const loginResponse = await loginTemporaryUser(userId);
+      const emailUser = {
+        user_id: userId,
+        email: loginResponse.email || registration?.email || normalizedEmail,
+        username: loginResponse.username || null,
+        token: loginResponse.access_token,
+        temporary_user: loginResponse.temporary_user,
+      };
+
+      localStorage.setItem("user", JSON.stringify(emailUser));
+      setUser(emailUser);
+      return emailUser;
+    } catch (error) {
+      console.error("Failed to continue with email:", error);
+      const detail = error.response?.data?.detail;
+      showToast(detail || "Could not continue with that email.", "error");
+      return null;
+    } finally {
+      setIsCreatingUser(false);
+    }
+  };
 
   // Persist user and fetch sessions by user
   useEffect(() => {
@@ -174,13 +158,10 @@ export const AuthProvider = ({ children }) => {
         const result = await getSessionsByUser(user.user_id);
 
         console.log("Sessions fetched successfully:", result?.length || 0, "sessions");
-        setSessions(result || []);
+        const sessionList = Array.isArray(result) ? result : [];
+        setSessions(sessionList);
 
-        if (result) {
-          localStorage.setItem("sessions", JSON.stringify(result));
-        } else {
-          localStorage.setItem("sessions", JSON.stringify([]));
-        }
+        localStorage.setItem("sessions", JSON.stringify(sessionList));
       } catch (error) {
         console.error("Failed to fetch sessions:", error);
 
@@ -223,8 +204,9 @@ export const AuthProvider = ({ children }) => {
   }, [selectedSession]);
 
   useEffect(() => {
-    if (selectedSession && sessions.length > 0) {
-      const selected = sessions.find(s => s.session_token === selectedSession);
+    const sessionList = Array.isArray(sessions) ? sessions : [];
+    if (selectedSession && sessionList.length > 0) {
+      const selected = sessionList.find(s => s.session_token === selectedSession);
       const sessionIdInt = selected?.session_id ?? null;
       if (sessionIdInt !== null) {
         localStorage.setItem("session_id_int", JSON.stringify(sessionIdInt));
@@ -247,7 +229,9 @@ export const AuthProvider = ({ children }) => {
         sessionLoadingStatus,
         setSessionLoadingStatus,
         showToast,
-        logout
+        logout,
+        continueWithEmail,
+        isCreatingUser,
       }}
     >
       {children}

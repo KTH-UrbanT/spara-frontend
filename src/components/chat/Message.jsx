@@ -1,11 +1,260 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
+import { FiExternalLink, FiHome } from "react-icons/fi";
+import AdvisorReviewPanel from "./AdvisorReviewPanel";
 import RatePanel from "./RatePanel";
 import { downloadDraftReport } from "../../services/api";
 import { useAuth } from "../../context/authContext";
 
 const MARKDOWN_LIST_PREFIX = /^(\s*[-*+]|\s*\d+\.)\s+/;
 const LABEL_VALUE_LINE = /^([^:\n]{3,90}):\s+(.+)$/;
+const SOURCE_REFERENCE_PATTERN = /\s*\((?:source|sources):\s*([^)]+)\)/gi;
+
+const isPresent = (value) => value !== undefined && value !== null && value !== "";
+
+const normalizeText = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .replace(/\.[a-z0-9]{2,5}$/i, "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const isExpertHandoffMessage = (message, content) => {
+  const metadata = message?.metadata || {};
+  const route = normalizeText(metadata.route || metadata.classification || metadata.agent);
+  const text = normalizeText(content);
+
+  return (
+    metadata.expert_handoff_triggered === true ||
+    route.includes("expert handoff") ||
+    text.includes("email was sent successfully to the ekr expert") ||
+    text.includes("i can email this conversation") ||
+    text.includes("do you want me to send it")
+  );
+};
+
+const getSourceTitle = (source) => {
+  const value = (
+    source?.title ||
+    source?.name ||
+    source?.filename ||
+    source?.source ||
+    ""
+  ).trim();
+  if (!value) {
+    return "Source";
+  }
+
+  const parts = value.split(/[/\\]/).filter(Boolean);
+  return parts[parts.length - 1] || value;
+};
+
+const normalizeSource = (source) => {
+  if (!source) {
+    return null;
+  }
+
+  if (typeof source === "string") {
+    const trimmed = source.trim();
+    if (!trimmed) {
+      return null;
+    }
+    return {
+      title: getSourceTitle({ filename: trimmed }),
+      filename: trimmed,
+      link: /^https?:\/\//i.test(trimmed) ? trimmed : "",
+    };
+  }
+
+  const link = String(source.link || source.url || "").trim();
+  const title = getSourceTitle(source);
+  const filename = String(source.filename || source.source || source.name || title).trim();
+
+  if (!link && !title && !filename) {
+    return null;
+  }
+
+  return {
+    ...source,
+    title,
+    filename,
+    link,
+  };
+};
+
+const getMessageSources = (message) => {
+  const directSources = Array.isArray(message?.sources) ? message.sources : [];
+  const vectorSources = Array.isArray(message?.metadata?.vector_sources)
+    ? message.metadata.vector_sources
+    : [];
+  const allSources = [...directSources, ...vectorSources]
+    .map(normalizeSource)
+    .filter(Boolean);
+  const seen = new Set();
+
+  return allSources.filter((source) => {
+    const key = normalizeText(source.link || source.filename || source.title);
+    if (!key || seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+};
+
+const sourceMatchesMention = (source, mention) => {
+  const normalizedMention = normalizeText(mention);
+  if (!normalizedMention) {
+    return false;
+  }
+
+  return [source.title, source.filename, source.name]
+    .map(normalizeText)
+    .filter(Boolean)
+    .some(
+      (candidate) =>
+        candidate.includes(normalizedMention) ||
+        normalizedMention.includes(candidate)
+    );
+};
+
+const addCitationMarkers = (content, sources, anchorPrefix) => {
+  if (typeof content !== "string" || sources.length === 0) {
+    return content;
+  }
+
+  return content.replace(SOURCE_REFERENCE_PATTERN, (fullMatch, rawSources) => {
+    const citationIndexes = sources
+      .map((source, index) =>
+        sourceMatchesMention(source, rawSources) ? index + 1 : null
+      )
+      .filter(Boolean);
+
+    if (citationIndexes.length === 0) {
+      return fullMatch;
+    }
+
+    return citationIndexes
+      .map((citationIndex) => `[${citationIndex}](#${anchorPrefix}-${citationIndex})`)
+      .join("");
+  });
+};
+
+const getField = (facts, keys) => {
+  if (!facts || typeof facts !== "object") {
+    return null;
+  }
+
+  const lowered = Object.fromEntries(
+    Object.keys(facts).map((key) => [key.toLowerCase(), key])
+  );
+
+  for (const key of keys) {
+    const originalKey = lowered[key.toLowerCase()];
+    if (originalKey && isPresent(facts[originalKey])) {
+      return facts[originalKey];
+    }
+  }
+
+  return null;
+};
+
+const formatFactValue = (value, suffix = "") => {
+  if (!isPresent(value)) {
+    return null;
+  }
+  if (typeof value === "boolean") {
+    return value ? "Yes" : "No";
+  }
+  if (typeof value === "number") {
+    return `${new Intl.NumberFormat("sv-SE").format(value)}${suffix}`;
+  }
+  const text = String(value).trim();
+  if (!suffix || normalizeText(text).includes(normalizeText(suffix))) {
+    return text;
+  }
+  return `${text}${suffix}`;
+};
+
+const buildBuildingContext = (metadata) => {
+  const facts = metadata?.retrieved_facts || {};
+  const buildingMatch = metadata?.building_match || {};
+  const address =
+    getField(facts, ["address", "official_address", "address_from_user", "epc_idadr"]) ||
+    buildingMatch.matched_address ||
+    buildingMatch.input_address;
+  const buildingName = getField(facts, ["brf_name", "building_name", "buildingName"]);
+  const buildingId =
+    metadata?.building_id ||
+    buildingMatch.building_id ||
+    getField(facts, ["building_id", "byggnadsid", "50a_uuid", "uuid", "oden_uuid"]);
+
+  const details = [
+    {
+      label: "Year",
+      value: formatFactValue(
+        getField(facts, [
+          "construction_year",
+          "building_year",
+          "year_built",
+          "built_year",
+          "byggnadsar",
+          "byggnadsår",
+        ])
+      ),
+    },
+    {
+      label: "Area",
+      value: formatFactValue(
+        getField(facts, [
+          "netAreaHeated",
+          "netAreaResidential",
+          "epc_egenatemp",
+          "atemp",
+          "Atemp",
+          "heated_area",
+          "total_heated_area",
+        ]),
+        " m2"
+      ),
+    },
+    {
+      label: "Energy class",
+      value: formatFactValue(
+        getField(facts, [
+          "declaredEnergyClass",
+          "energy_class",
+          "energy_label",
+          "energiklass",
+          "epc_egienergiklass",
+        ])
+      ),
+    },
+    {
+      label: "Performance",
+      value: formatFactValue(
+        getField(facts, [
+          "EnergyClassKwhM2",
+          "energy_performance",
+          "primary_energy",
+        ]),
+        " kWh/m2"
+      ),
+    },
+  ].filter((item) => isPresent(item.value));
+
+  if (!address && !buildingName && !buildingId && details.length === 0) {
+    return null;
+  }
+
+  return {
+    address,
+    buildingName,
+    buildingId,
+    details,
+  };
+};
 
 const isLikelyLabelValueLine = (line) => {
   const trimmed = line.trim();
@@ -103,16 +352,23 @@ const markdownComponents = {
   strong: ({ children }) => (
     <strong className="font-semibold text-inherit">{children}</strong>
   ),
-  a: ({ href, children }) => (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="break-words font-medium text-primary underline decoration-primary/50 underline-offset-4"
-    >
-      {children}
-    </a>
-  ),
+  a: ({ href, children }) => {
+    const isReferenceAnchor = href?.startsWith("#ref-");
+    return (
+      <a
+        href={href}
+        target={isReferenceAnchor ? undefined : "_blank"}
+        rel={isReferenceAnchor ? undefined : "noopener noreferrer"}
+        className={
+          isReferenceAnchor
+            ? "mx-0.5 align-super text-[0.68rem] font-semibold text-sky-700 no-underline hover:text-sky-900"
+            : "break-words font-medium text-primary underline decoration-primary/50 underline-offset-4"
+        }
+      >
+        {children}
+      </a>
+    );
+  },
   code: ({ inline, children }) =>
     inline ? (
       <code className="rounded-md bg-base-300/70 px-1.5 py-0.5 font-mono text-[0.95em]">
@@ -133,28 +389,127 @@ const markdownComponents = {
   ),
 };
 
+function BuildingContextBlock({ context }) {
+  if (!context) {
+    return null;
+  }
+
+  return (
+    <div className="mb-4 rounded-lg border border-base-300/80 bg-base-100/70 p-3 text-base-content shadow-sm">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-700">
+          <FiHome aria-hidden="true" size={18} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-base font-semibold leading-6">
+            {context.address || context.buildingName || "Identified building"}
+          </div>
+          {context.buildingName && context.address && (
+            <div className="truncate text-xs text-base-content/60">
+              {context.buildingName}
+            </div>
+          )}
+          <div className="mt-2 flex flex-wrap gap-2">
+            {context.buildingId && (
+              <span className="rounded-md border border-base-300 bg-base-200/60 px-2 py-1 text-xs text-base-content/70">
+                ID {context.buildingId}
+              </span>
+            )}
+            {context.details.map((item) => (
+              <span
+                key={`${item.label}-${item.value}`}
+                className="rounded-md border border-base-300 bg-base-200/60 px-2 py-1 text-xs text-base-content/70"
+              >
+                <span className="font-medium text-base-content/80">{item.label}:</span>{" "}
+                {item.value}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SourceReferences({ sources, anchorPrefix }) {
+  if (sources.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-5 border-t border-base-300/80 pt-3">
+      <div className="mb-2 text-[0.7rem] font-semibold uppercase tracking-wide text-base-content/50">
+        References
+      </div>
+      <ol className="list-none space-y-2 pl-0">
+        {sources.map((source, index) => {
+          const referenceNumber = index + 1;
+          const referenceId = `${anchorPrefix}-${referenceNumber}`;
+          const title = getSourceTitle(source);
+          const content = (
+            <>
+              <span className="mr-2 align-super text-[0.68rem] font-semibold text-sky-700">
+                {referenceNumber}
+              </span>
+              <span className="min-w-0 flex-1 truncate">{title}</span>
+              {source.link && (
+                <FiExternalLink
+                  aria-hidden="true"
+                  className="ml-2 shrink-0 text-base-content/40"
+                  size={13}
+                />
+              )}
+            </>
+          );
+
+          return (
+            <li
+              id={referenceId}
+              key={`${source.link || source.filename || title}-${referenceNumber}`}
+              className="scroll-mt-24 pl-0 text-xs leading-5 text-base-content/70"
+            >
+              {source.link ? (
+                <a
+                  href={source.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center rounded-md border border-base-300/80 bg-base-100/60 px-2.5 py-2 no-underline transition hover:border-sky-300 hover:bg-sky-50/70"
+                >
+                  {content}
+                </a>
+              ) : (
+                <div className="flex items-center rounded-md border border-base-300/80 bg-base-100/60 px-2.5 py-2">
+                  {content}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
 function Message({ children, position, time, message }) {
   const { showToast } = useAuth();
   const report = message?.downloadable_report;
   const isAssistantMessage = message?.role === "assistant";
-  const sources = Array.isArray(message?.sources)
-    ? message.sources.filter(
-        (source) => source?.link && (source?.filename || source?.name)
-      )
-    : [];
+  const hideReferences = isAssistantMessage && isExpertHandoffMessage(message, children);
+  const sources = isAssistantMessage && !hideReferences ? getMessageSources(message) : [];
+  const anchorSeed = String(
+    message?.message_id || message?.timestamp || normalizeText(children).length || "message"
+  ).replace(/[^a-zA-Z0-9_-]/g, "-");
+  const citationAnchorPrefix = `ref-${anchorSeed}`;
+  const buildingContext = isAssistantMessage
+    ? buildBuildingContext(message?.metadata)
+    : null;
   const formattedContent = isAssistantMessage
-    ? formatAssistantMessage(children)
+    ? addCitationMarkers(
+        formatAssistantMessage(children),
+        sources,
+        citationAnchorPrefix
+      )
     : children;
-
-  const getSourceTitle = (source) => {
-    const value = (source?.name || source?.filename || "").trim();
-    if (!value) {
-      return "Source";
-    }
-
-    const parts = value.split(/[/\\]/).filter(Boolean);
-    return parts[parts.length - 1] || value;
-  };
 
   const handleDownload = async () => {
     if (!report?.report_id) {
@@ -188,28 +543,20 @@ function Message({ children, position, time, message }) {
                 : "break-words whitespace-pre-wrap leading-6"
             }
           >
+            {isAssistantMessage && (
+              <BuildingContextBlock context={buildingContext} />
+            )}
             <ReactMarkdown components={markdownComponents}>
               {formattedContent}
             </ReactMarkdown>
+            {isAssistantMessage && (
+              <SourceReferences
+                sources={sources}
+                anchorPrefix={citationAnchorPrefix}
+              />
+            )}
           </div>
         </div>
-        {isAssistantMessage && sources.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {sources.map((source, index) => (
-              <a
-                key={`${source.link}-${index}`}
-                href={source.link}
-                className="max-w-xs rounded-2xl border border-pink-200 bg-pink-100 px-3 py-2 text-left text-xs text-pink-950 no-underline shadow-sm transition hover:bg-pink-200"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <div className="font-medium leading-tight">
-                  {getSourceTitle(source)}
-                </div>
-              </a>
-            ))}
-          </div>
-        )}
         {report?.report_id && (
           <button
             type="button"
@@ -220,6 +567,7 @@ function Message({ children, position, time, message }) {
           </button>
         )}
         {isAssistantMessage && <RatePanel message={message} />}
+        {isAssistantMessage && <AdvisorReviewPanel message={message} />}
       </div>
     </div>
   );
