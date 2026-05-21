@@ -132,6 +132,49 @@ export async function getSessionsByUser(userId) {
   }
 }
 
+const toMessageTimestamp = (message) => {
+  const value = message?.timestamp ?? message?.sent_at;
+  if (value == null || value === "") {
+    return undefined;
+  }
+
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value === "string" && /^\d+(\.\d+)?$/.test(value.trim())) {
+    return Number(value);
+  }
+
+  const parsed = new Date(value).getTime();
+  return Number.isNaN(parsed) ? undefined : Math.floor(parsed / 1000);
+};
+
+const normalizeMessage = (message) => {
+  const timestamp = toMessageTimestamp(message);
+
+  return {
+    ...message,
+    ...(timestamp !== undefined ? { timestamp } : {}),
+  };
+};
+
+export async function getMessagesBySession(sessionId) {
+  try {
+    const response = await axios.get(`${VITE_MS_URL}/messages/${sessionId}/`, {
+      headers: getAuthHeaders()
+    });
+    return Array.isArray(response.data)
+      ? response.data
+          .filter((message) => message?.role !== "system")
+          .map(normalizeMessage)
+      : [];
+  } catch (error) {
+    console.error("Failed to fetch messages:", error);
+    throw error;
+  }
+}
+
 export async function getUserInfo(userId) {
   try {
     const response = await axios.get(`${VITE_MS_URL}/user/${userId}/`, {

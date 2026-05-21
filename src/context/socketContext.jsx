@@ -13,7 +13,7 @@ import socket, {
   removeSessionUpdatedListener,
   removeSessionCreatedListener,
 } from "../services/socket";
-import { getSessionsByUser } from "../services/api";
+import { getMessagesBySession, getSessionsByUser } from "../services/api";
 import { useAuth } from "./authContext";
 
 const SocketContext = createContext();
@@ -57,6 +57,8 @@ export const SocketProvider = ({ children }) => {
       console.log(
         `Connecting to socket for chat: ${selectedSession}`,
       );
+      let cancelled = false;
+      setMessages([]);
 
       // Update session ID and connect
       const chatAuth = {
@@ -65,15 +67,6 @@ export const SocketProvider = ({ children }) => {
         email: user?.email,
         session_id_int: selectedSessionInt,
       };
-      socket.auth = chatAuth;
-      socket.connect();
-
-      establishSession(
-        chatAuth.session_id,
-        chatAuth.session_id_int,
-        chatAuth.user_id,
-        chatAuth.email
-      );
 
       // Event listeners
       const handleConnect = () => setIsConnected(true);
@@ -106,13 +99,36 @@ export const SocketProvider = ({ children }) => {
         setSessionIsLoading(selectedSession, false);
       };
 
+      getMessagesBySession(selectedSessionInt)
+        .then((savedMessages) => {
+          if (!cancelled) {
+            setMessages(savedMessages);
+          }
+        })
+        .catch((error) => {
+          if (!cancelled) {
+            console.error("Failed to preload saved messages:", error);
+          }
+        });
+
       socket.on("connect", handleConnect);
       socket.on("disconnect", handleDisconnect);
       listenForSessionUpdates(handleSessionUpdate);
       listenForMessages(handleMessageReceive);
       listenForAnswers(handleAnswerReceive);
 
+      socket.auth = chatAuth;
+      socket.connect();
+
+      establishSession(
+        chatAuth.session_id,
+        chatAuth.session_id_int,
+        chatAuth.user_id,
+        chatAuth.email
+      );
+
       return () => {
+        cancelled = true;
         console.log(
           `Disconnecting from chat: ${selectedSession}`,
         );
