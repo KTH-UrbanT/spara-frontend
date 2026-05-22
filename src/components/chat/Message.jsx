@@ -8,13 +8,22 @@ import { useAuth } from "../../context/authContext";
 
 const MARKDOWN_LIST_PREFIX = /^(\s*[-*+]|\s*\d+\.)\s+/;
 const LABEL_VALUE_LINE = /^([^:\n]{3,90}):\s+(.+)$/;
-const SOURCE_REFERENCE_PATTERN = /\s*\((?:source|sources):\s*([^)]+)\)/gi;
+const SOURCE_REFERENCE_PATTERN =
+  /\s*(?:\((?:source|sources):\s*([^)]+)\)|\[(?:source|sources):\s*([^\]]+)\])/gi;
+const BARE_PARENTHESES_PATTERN = /\s*\(([^()]{3,180})\)/g;
+const UNICODE_BULLET_PATTERN = /^(\s*)[•●▪◦]\s+(.+)$/;
+const DASH_BULLET_PATTERN = /^(\s*)[–—]\s+(.+)$/;
+const NUMBERED_LIST_VARIANT_PATTERN =
+  /^(\s*)(\d{1,3})\s*(?:[),:;]|[-–—])\s+(.+)$/;
+const SPACED_ORDERED_LIST_PATTERN = /^(\s*)(\d{1,3})\s*\.\s+(.+)$/;
 
 const isPresent = (value) => value !== undefined && value !== null && value !== "";
 
 const normalizeText = (value) =>
   String(value || "")
     .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/\.[a-z0-9]{2,5}$/i, "")
     .replace(/[_-]+/g, " ")
     .replace(/\s+/g, " ")
@@ -104,19 +113,82 @@ const getMessageSources = (message) => {
 };
 
 const sourceMatchesMention = (source, mention) => {
-  const normalizedMention = normalizeText(mention);
-  if (!normalizedMention) {
+  const mentions = splitSourceMentions(mention);
+  if (mentions.length === 0) {
     return false;
   }
 
-  return [source.title, source.filename, source.name]
+  const aliases = [source.title, source.filename, source.name, source.source]
     .map(normalizeText)
     .filter(Boolean)
-    .some(
-      (candidate) =>
-        candidate.includes(normalizedMention) ||
-        normalizedMention.includes(candidate)
-    );
+    .flatMap((candidate) => [
+      candidate,
+      candidate.replace(/\b(?:pdf|docx|xlsx|csv|json|txt)\b/g, "").trim(),
+    ])
+    .filter(Boolean);
+
+  return mentions.some((mentionCandidate) =>
+    aliases.some(
+      (alias) =>
+        alias.includes(mentionCandidate) || mentionCandidate.includes(alias)
+    )
+  );
+};
+
+const splitSourceMentions = (mention) => {
+  const cleaned = String(mention || "")
+    .replace(/^(?:source|sources):/i, "")
+    .trim();
+
+  if (!cleaned) {
+    return [];
+  }
+
+  const parts = cleaned
+    .split(/\s*(?:;|\||\+|\band\b)\s*/i)
+    .flatMap((part) => part.split(/\s*,\s*(?=[A-ZÅÄÖa-zåäö0-9])/))
+    .map(normalizeText)
+    .filter(Boolean);
+
+  const all = [normalizeText(cleaned), ...parts].filter(Boolean);
+  return [...new Set(all)];
+};
+
+const buildCitationLinks = (citationIndexes, anchorPrefix) =>
+  citationIndexes
+    .map((citationIndex) => `[${citationIndex}](#${anchorPrefix}-${citationIndex})`)
+    .join("");
+
+const citationIndexesForMention = (sources, mention) =>
+  sources
+    .map((source, index) =>
+      sourceMatchesMention(source, mention) ? index + 1 : null
+    )
+    .filter(Boolean);
+
+const appendFallbackCitationMarkers = (content, sources, anchorPrefix) => {
+  if (
+    typeof content !== "string" ||
+    sources.length === 0 ||
+    content.includes(`](#${anchorPrefix}-`)
+  ) {
+    return content;
+  }
+
+  const markers = buildCitationLinks(
+    sources.map((_, index) => index + 1),
+    anchorPrefix
+  );
+  const lines = content.split("\n");
+
+  for (let index = lines.length - 1; index >= 0; index -= 1) {
+    if (lines[index].trim()) {
+      lines[index] = `${lines[index]} ${markers}`;
+      return lines.join("\n");
+    }
+  }
+
+  return `${content}${markers}`;
 };
 
 const addCitationMarkers = (content, sources, anchorPrefix) => {
@@ -124,21 +196,34 @@ const addCitationMarkers = (content, sources, anchorPrefix) => {
     return content;
   }
 
-  return content.replace(SOURCE_REFERENCE_PATTERN, (fullMatch, rawSources) => {
-    const citationIndexes = sources
-      .map((source, index) =>
-        sourceMatchesMention(source, rawSources) ? index + 1 : null
-      )
-      .filter(Boolean);
+  let withExplicitMarkers = content.replace(
+    SOURCE_REFERENCE_PATTERN,
+    (fullMatch, rawSourcesFromParens, rawSourcesFromBrackets) => {
+      const rawSources = rawSourcesFromParens || rawSourcesFromBrackets;
+      const citationIndexes = citationIndexesForMention(sources, rawSources);
 
-    if (citationIndexes.length === 0) {
-      return fullMatch;
+      if (citationIndexes.length === 0) {
+        return fullMatch;
+      }
+
+      return buildCitationLinks(citationIndexes, anchorPrefix);
     }
+  );
 
-    return citationIndexes
-      .map((citationIndex) => `[${citationIndex}](#${anchorPrefix}-${citationIndex})`)
-      .join("");
-  });
+  withExplicitMarkers = withExplicitMarkers.replace(
+    BARE_PARENTHESES_PATTERN,
+    (fullMatch, rawSources) => {
+      const citationIndexes = citationIndexesForMention(sources, rawSources);
+
+      if (citationIndexes.length === 0) {
+        return fullMatch;
+      }
+
+      return buildCitationLinks(citationIndexes, anchorPrefix);
+    }
+  );
+
+  return appendFallbackCitationMarkers(withExplicitMarkers, sources, anchorPrefix);
 };
 
 const getField = (facts, keys) => {
@@ -281,8 +366,10 @@ const formatAssistantMessage = (content) => {
     .split("\n")
     .map((line) =>
       line
-        .replace(/^\s*[•●▪◦]\s+/, "- ")
-        .replace(/^(\s*)(\d+)\)\s+/, "$1$2. ")
+        .replace(UNICODE_BULLET_PATTERN, "$1- $2")
+        .replace(DASH_BULLET_PATTERN, "$1- $2")
+        .replace(SPACED_ORDERED_LIST_PATTERN, "$1$2. $3")
+        .replace(NUMBERED_LIST_VARIANT_PATTERN, "$1$2. $3")
         .trimEnd()
     );
 
@@ -294,6 +381,11 @@ const formatAssistantMessage = (content) => {
 
     if (!trimmed) {
       formatted.push("");
+      continue;
+    }
+
+    if (MARKDOWN_LIST_PREFIX.test(currentLine)) {
+      formatted.push(currentLine);
       continue;
     }
 
@@ -318,7 +410,7 @@ const formatAssistantMessage = (content) => {
           (line) => !MARKDOWN_LIST_PREFIX.test(line) && !isLikelyLabelValueLine(line)
         );
 
-      formatted.push(trimmed);
+      formatted.push(currentLine);
 
       if (shouldFormatAsList) {
         blockLines.forEach((line) => {
@@ -330,7 +422,7 @@ const formatAssistantMessage = (content) => {
       continue;
     }
 
-    formatted.push(trimmed);
+    formatted.push(currentLine);
   }
 
   return formatted.join("\n");
