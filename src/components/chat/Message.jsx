@@ -16,6 +16,8 @@ const DASH_BULLET_PATTERN = /^(\s*)[–—]\s+(.+)$/;
 const NUMBERED_LIST_VARIANT_PATTERN =
   /^(\s*)(\d{1,3})\s*(?:[),:;]|[-–—])\s+(.+)$/;
 const SPACED_ORDERED_LIST_PATTERN = /^(\s*)(\d{1,3})\s*\.\s+(.+)$/;
+const ORDERED_LIST_LINE_PATTERN = /^(\s*)\d{1,3}\.\s+(.+)$/;
+const UNORDERED_LIST_LINE_PATTERN = /^(\s*)[-*+]\s+(.+)$/;
 
 const isPresent = (value) => value !== undefined && value !== null && value !== "";
 
@@ -361,7 +363,7 @@ const formatAssistantMessage = (content) => {
     return content;
   }
 
-  const lines = content
+  const normalizedLines = content
     .replace(/\r\n/g, "\n")
     .split("\n")
     .map((line) =>
@@ -372,6 +374,35 @@ const formatAssistantMessage = (content) => {
         .replace(NUMBERED_LIST_VARIANT_PATTERN, "$1$2. $3")
         .trimEnd()
     );
+  const lines = [];
+  let activeOrderedIndent = null;
+
+  normalizedLines.forEach((line) => {
+    const orderedMatch = line.match(ORDERED_LIST_LINE_PATTERN);
+    const unorderedMatch = line.match(UNORDERED_LIST_LINE_PATTERN);
+    const trimmed = line.trim();
+
+    if (orderedMatch) {
+      activeOrderedIndent = orderedMatch[1].length;
+      lines.push(line);
+      return;
+    }
+
+    if (unorderedMatch && activeOrderedIndent !== null) {
+      const bulletIndent = unorderedMatch[1].length;
+
+      if (bulletIndent <= activeOrderedIndent + 1) {
+        lines.push(`${" ".repeat(activeOrderedIndent + 3)}- ${unorderedMatch[2]}`);
+        return;
+      }
+    }
+
+    if (trimmed && !unorderedMatch) {
+      activeOrderedIndent = null;
+    }
+
+    lines.push(line);
+  });
 
   const formatted = [];
 
