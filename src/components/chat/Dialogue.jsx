@@ -76,7 +76,7 @@ const Dialogue = ({ messages, loadingStatus }) => {
           ))}
           {loadingStatus?.loading ? (
             <div className="flex justify-start p-2">
-              <LoadingSpinner />
+              <LoadingSpinner message={loadingStatus?.message} />
             </div>
           ) : null}
         </div>

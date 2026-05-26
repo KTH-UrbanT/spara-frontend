@@ -66,6 +66,10 @@ export const listenForAnswers = (callback) => {
   socket.on(EVENTS.MESSAGE_ANSWER, callback);
 };
 
+export const listenForProcessingStatus = (callback) => {
+  socket.on(EVENTS.PROCESSING_STATUS, callback);
+};
+
 export const listenForSessionUpdates = (callback) => {
   socket.on(EVENTS.SESSION_UPDATED, callback);
 };
@@ -81,6 +85,10 @@ export const removeMessageListener = (callback) => {
 
 export const removeAnswerListener = (callback) => {
   socket.off(EVENTS.MESSAGE_ANSWER, callback);
+};
+
+export const removeProcessingStatusListener = (callback) => {
+  socket.off(EVENTS.PROCESSING_STATUS, callback);
 };
 
 export const removeSessionUpdatedListener = (callback) => {

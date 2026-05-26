@@ -6,10 +6,12 @@ import socket, {
   establishSession,
   listenForMessages,
   listenForAnswers,
+  listenForProcessingStatus,
   listenForSessionUpdates,
   listenForSessionCreated,
   removeMessageListener,
   removeAnswerListener,
+  removeProcessingStatusListener,
   removeSessionUpdatedListener,
   removeSessionCreatedListener,
 } from "../services/socket";
@@ -41,6 +43,26 @@ export const SocketProvider = ({ children }) => {
       ...(currentStatus || {}),
       [sessionId]: { loading },
     }));
+  };
+
+  const setSessionProcessingStatus = (sessionId, statusPayload) => {
+    if (!sessionId) {
+      return;
+    }
+
+    setSessionLoadingStatus((currentStatus) => {
+      const previous = currentStatus?.[sessionId] || {};
+      const nextLoading = statusPayload?.status === "done" ? false : true;
+      return {
+        ...(currentStatus || {}),
+        [sessionId]: {
+          ...previous,
+          loading: nextLoading,
+          status: statusPayload?.status || previous.status,
+          message: statusPayload?.message || "",
+        },
+      };
+    });
   };
 
   const sessionList = Array.isArray(sessions) ? sessions : [];
@@ -99,6 +121,14 @@ export const SocketProvider = ({ children }) => {
         setSessionIsLoading(selectedSession, false);
       };
 
+      const handleProcessingStatus = (statusPayload) => {
+        if (!statusPayload || statusPayload.session_id !== selectedSession) {
+          return;
+        }
+
+        setSessionProcessingStatus(selectedSession, statusPayload);
+      };
+
       getMessagesBySession(selectedSessionInt)
         .then((savedMessages) => {
           if (!cancelled) {
@@ -116,6 +146,7 @@ export const SocketProvider = ({ children }) => {
       listenForSessionUpdates(handleSessionUpdate);
       listenForMessages(handleMessageReceive);
       listenForAnswers(handleAnswerReceive);
+      listenForProcessingStatus(handleProcessingStatus);
 
       socket.auth = chatAuth;
       socket.connect();
@@ -136,6 +167,7 @@ export const SocketProvider = ({ children }) => {
         socket.off("disconnect", handleDisconnect);
         removeMessageListener(handleMessageReceive);
         removeAnswerListener(handleAnswerReceive);
+        removeProcessingStatusListener(handleProcessingStatus);
         removeSessionUpdatedListener(handleSessionUpdate);
       };
     }

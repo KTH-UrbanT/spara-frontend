@@ -268,9 +268,13 @@ const buildBuildingContext = (metadata) => {
   const facts = metadata?.retrieved_facts || {};
   const buildingMatch = metadata?.building_match || {};
   const address =
+    metadata?.requested_address ||
     getField(facts, ["address", "official_address", "address_from_user", "epc_idadr"]) ||
     buildingMatch.matched_address ||
     buildingMatch.input_address;
+  const epcRecordAddress =
+    metadata?.epc_record_address ||
+    (metadata?.same_building_multiple_addresses ? getField(facts, ["epc_idadr", "official_address"]) : null);
   const buildingName = getField(facts, ["brf_name", "building_name", "buildingName"]);
   const buildingId =
     metadata?.building_id ||
@@ -278,6 +282,14 @@ const buildBuildingContext = (metadata) => {
     getField(facts, ["building_id", "byggnadsid", "50a_uuid", "uuid", "oden_uuid"]);
 
   const details = [
+    ...(isPresent(epcRecordAddress) && normalizeText(epcRecordAddress) !== normalizeText(address)
+      ? [
+          {
+            label: "EPC record address",
+            value: epcRecordAddress,
+          },
+        ]
+      : []),
     {
       label: "Year",
       value: formatFactValue(
@@ -310,6 +322,7 @@ const buildBuildingContext = (metadata) => {
       label: "Energy class",
       value: formatFactValue(
         getField(facts, [
+          "epc_egienergiklass2020_calc",
           "declaredEnergyClass",
           "energy_class",
           "energy_label",
@@ -319,12 +332,25 @@ const buildBuildingContext = (metadata) => {
       ),
     },
     {
-      label: "Performance",
+      label: "Specific energy use",
       value: formatFactValue(
         getField(facts, [
-          "EnergyClassKwhM2",
+          "epc_egispecifikenergianvandning_calc",
+          "epc_egienergiprestanda",
           "energy_performance",
+          "EnergyClassKwhM2",
+        ]),
+        " kWh/m2"
+      ),
+    },
+    {
+      label: "Primary energy number",
+      value: formatFactValue(
+        getField(facts, [
+          "epc_egiprimarenergital2020_calc",
+          "epc_egiprimarenergital2020",
           "primary_energy",
+          "primary_energy_number",
         ]),
         " kWh/m2"
       ),
@@ -355,6 +381,10 @@ const isLikelyLabelValueLine = (line) => {
   }
 
   const label = match[1].trim();
+  if (/^(note|warning|caution)$/i.test(label)) {
+    return false;
+  }
+
   return /^[A-ZÅÄÖ]/.test(label) && label.split(/\s+/).length <= 14;
 };
 
