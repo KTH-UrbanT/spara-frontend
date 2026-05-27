@@ -18,10 +18,11 @@ const Root = () => {
   useEffect(() => {
     if (params.chatId) {
       setSelectedSession(decodeURIComponent(params.chatId));
+      setSidebarState(true);
     } else {
       setSelectedSession(null);
     }
-  }, [location, params]);
+  }, [location.pathname, params.chatId, setSelectedSession]);
 
   // Hide sidebar on /login or /register
   const hideSidebar = location.pathname === "/login" || location.pathname === "/register";

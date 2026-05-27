@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .assistant-message-bubble {
+    @apply bg-slate-800 text-slate-100;
+  }
+
+  .assistant-message-bubble .assistant-markdown {
+    color: inherit;
+  }
+
+  .assistant-message-bubble
+    .assistant-markdown
+    :where(p, li, ul, ol, h1, h2, h3, h4, h5, h6, strong, em, blockquote) {
+    color: inherit;
+  }
+
+  .assistant-message-bubble .assistant-markdown :where(a) {
+    @apply text-sky-200 decoration-sky-200/60 hover:text-sky-100;
+  }
+
+  .assistant-message-bubble .assistant-markdown :where(code):not(pre code) {
+    @apply bg-slate-700/80 text-slate-50;
+  }
+
+  .assistant-message-bubble .assistant-markdown :where(pre) {
+    @apply bg-slate-950/50 text-slate-100;
+  }
+}
+
 /*
 * Fix for scrollbar in modals
 * SRC: https://github.com/saadeghi/daisyui/issues/3040

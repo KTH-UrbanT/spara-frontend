@@ -115,6 +115,24 @@ const buildDiagnostics = (metadata = {}) => {
     });
   }
 
+  if (
+    metadata?.expert_handoff_pending_confirmation ||
+    metadata?.expert_handoff_requested ||
+    metadata?.expert_handoff_sent !== undefined ||
+    metadata?.expert_handoff_error
+  ) {
+    const sent = metadata?.expert_handoff_sent === true;
+    const failed = Boolean(metadata?.expert_handoff_error);
+    const pending = metadata?.expert_handoff_pending_confirmation === true;
+    diagnostics.push({
+      key: "expert-handoff",
+      label: "Handoff",
+      value: failed ? "failed" : sent ? "sent" : pending ? "pending" : "requested",
+      detail: metadata?.expert_handoff_error || "",
+      tone: failed || pending ? "warning" : "good",
+    });
+  }
+
   if (grounding?.status) {
     const unsupportedRate = formatPercent(grounding.unsupported_claim_rate);
     diagnostics.push({

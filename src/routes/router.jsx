@@ -5,6 +5,7 @@ import ShareGate from "../pages/ShareGate";
 import Root from "./Root";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import AboutPage from "../pages/AboutPage";
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +23,10 @@ export const router = createBrowserRouter([
       {
         path: "share",
         element: <ShareGate />
+      },
+      {
+        path: "about",
+        element: <AboutPage />
       },
       {
         path: "login",

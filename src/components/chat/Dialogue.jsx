@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Message from "./Message";
 import { useSettings } from "../../context/settingsContext";
 import LoadingSpinner from "./Spinner";
+import WelcomeInstructions from "../WelcomeInstructions";
 
 const convertTimestamp = (timestamp) => {
   if (timestamp == null || timestamp === "") {
@@ -83,15 +84,11 @@ const Dialogue = ({ messages, loadingStatus }) => {
       ) : (
         <div
           ref={scrollRef} // Reference for scrolling
-          className="flex-grow align-center content-center"
+          className="flex-grow content-center px-2"
         >
-          <div className="text-center">
-            <div>
-              <p className="text-l dark:text-slate-300">No messages yet.</p>
-              <p className="text-xl dark:text-slate-300">
-                Start the conversation!
-              </p>
-            </div>
+          <div className="space-y-4 text-center">
+            <WelcomeInstructions compact />
+            <p className="text-sm dark:text-slate-300">Start the conversation below.</p>
           </div>
         </div>
       )}

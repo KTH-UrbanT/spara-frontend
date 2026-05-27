@@ -4,6 +4,7 @@ import Button from "../components/Button";
 import SendPanel from "../components/chat/SendPanel";
 import Header from "../components/Header";
 import ContinueWithEmailModal from "../components/modal/ContinueWithEmailModal";
+import WelcomeInstructions from "../components/WelcomeInstructions";
 import { useAuth } from "../context/authContext";
 
 function HomePage() {
@@ -15,20 +16,16 @@ function HomePage() {
   return (
     <>
       <Header title={"SPARA"} />
-      <div className="hero h-full">
-        <div className="hero-content text-center">
-          <div className="max-w-xl">
-            <h1 className="text-5xl font-bold dark:text-white">Hello!</h1>
+      <div className="flex h-full items-center justify-center overflow-y-auto px-2 py-6">
+        <div className="flex w-full max-w-xl flex-col items-center gap-4 text-center">
+          <WelcomeInstructions />
             {canChat ? (
               <>
-                <p className="py-6 dark:text-slate-300">
-                  This is SPARA chatbot. Ask your questions by starting a chat.
-                </p>
                 <SendPanel />
               </>
             ) : (
               <>
-                <p className="py-6 dark:text-slate-300">
+                <p className="text-sm dark:text-slate-300">
                   Start by logging in, registering, or continuing with your email.
                 </p>
                 <div className="mx-auto flex w-full max-w-sm flex-col gap-3">
@@ -57,7 +54,6 @@ function HomePage() {
                 </div>
               </>
             )}
-          </div>
         </div>
       </div>
       <ContinueWithEmailModal

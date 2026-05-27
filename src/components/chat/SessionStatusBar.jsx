@@ -1,0 +1,93 @@
+import { useMemo, useState } from "react";
+import { FiPauseCircle, FiPlayCircle } from "react-icons/fi";
+import { updateSessionActiveState } from "../../services/api";
+import { useAuth } from "../../context/authContext";
+
+function SessionStatusBar() {
+  const {
+    selectedSession,
+    sessions,
+    setSessions,
+    showToast,
+    setSessionLoadingStatus,
+  } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const session = useMemo(() => {
+    const sessionList = Array.isArray(sessions) ? sessions : [];
+    return sessionList.find((item) => item.session_token === selectedSession) || null;
+  }, [selectedSession, sessions]);
+
+  if (!selectedSession || !session) {
+    return null;
+  }
+
+  const isActive = session.is_active !== false;
+  const nextIsActive = !isActive;
+
+  const handleToggle = async () => {
+    try {
+      setIsSaving(true);
+      const updatedSession = await updateSessionActiveState(
+        session.session_id,
+        nextIsActive
+      );
+      const nextSessions = (Array.isArray(sessions) ? sessions : []).map((item) =>
+        item.session_id === session.session_id
+          ? { ...item, ...updatedSession }
+          : item
+      );
+      setSessions(nextSessions);
+      localStorage.setItem("sessions", JSON.stringify(nextSessions));
+
+      if (!nextIsActive) {
+        setSessionLoadingStatus((currentStatus) => ({
+          ...(currentStatus || {}),
+          [selectedSession]: { loading: false },
+        }));
+      }
+
+      showToast(
+        nextIsActive ? "Session reactivated" : "Session deactivated",
+        "success"
+      );
+    } catch (error) {
+      console.error("Failed to update session state:", error);
+      showToast("Failed to update session state", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const Icon = isActive ? FiPauseCircle : FiPlayCircle;
+
+  return (
+    <div className="mb-2 flex w-full max-w-xl items-center gap-3 rounded-lg border border-base-300 bg-base-100/80 px-3 py-2 text-sm text-base-content shadow-sm">
+      <span
+        className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+          isActive ? "bg-emerald-500" : "bg-slate-400"
+        }`}
+        aria-hidden="true"
+      />
+      <div className="min-w-0 flex-1">
+        <div className="font-medium">{isActive ? "Session active" : "Session inactive"}</div>
+        <div className="truncate text-xs text-base-content/60">
+          {isActive
+            ? "SPARA can respond to new messages in this chat."
+            : "Reactivate this chat before sending another message."}
+        </div>
+      </div>
+      <button
+        type="button"
+        className={`btn btn-sm shrink-0 ${isActive ? "btn-outline" : "btn-primary"}`}
+        onClick={handleToggle}
+        disabled={isSaving}
+      >
+        <Icon aria-hidden="true" size={16} />
+        {isSaving ? "Saving" : isActive ? "Deactivate" : "Reactivate"}
+      </button>
+    </div>
+  );
+}
+
+export default SessionStatusBar;

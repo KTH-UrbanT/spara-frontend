@@ -175,6 +175,23 @@ export async function getMessagesBySession(sessionId) {
   }
 }
 
+export async function updateSessionActiveState(sessionId, isActive) {
+  try {
+    const response = await axios.patch(
+      `${VITE_MS_URL}/session/${sessionId}/active/`,
+      null,
+      {
+        params: { is_active: isActive },
+        headers: getAuthHeaders(),
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update session active state:", error);
+    throw error;
+  }
+}
+
 export async function getUserInfo(userId) {
   try {
     const response = await axios.get(`${VITE_MS_URL}/user/${userId}/`, {

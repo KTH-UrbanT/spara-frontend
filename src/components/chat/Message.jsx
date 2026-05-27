@@ -1,6 +1,13 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
-import { FiExternalLink, FiHome } from "react-icons/fi";
+import {
+  FiAlertTriangle,
+  FiCheckCircle,
+  FiClock,
+  FiExternalLink,
+  FiHome,
+  FiSend,
+} from "react-icons/fi";
 import AdvisorReviewPanel from "./AdvisorReviewPanel";
 import RatePanel from "./RatePanel";
 import { downloadDraftReport } from "../../services/api";
@@ -43,6 +50,52 @@ const isExpertHandoffMessage = (message, content) => {
     text.includes("i can email this conversation") ||
     text.includes("do you want me to send it")
   );
+};
+
+const getExpertHandoffStatus = (message, content) => {
+  const metadata = message?.metadata || {};
+  const text = normalizeText(content);
+
+  if (metadata.expert_handoff_error || text.includes("could not send the email")) {
+    return {
+      tone: "error",
+      label: "Expert handoff failed",
+      detail: "The email was not sent. Please try again later.",
+      icon: FiAlertTriangle,
+    };
+  }
+
+  if (metadata.expert_handoff_sent === true || text.includes("email was sent successfully")) {
+    return {
+      tone: "success",
+      label: "Expert handoff sent",
+      detail: metadata.user_email ? "The expert was emailed and the user was CCed." : "The expert was emailed.",
+      icon: FiCheckCircle,
+    };
+  }
+
+  if (metadata.expert_handoff_simulated === true || text.includes("no real email was sent")) {
+    return {
+      tone: "info",
+      label: "Expert handoff simulated",
+      detail: "Evaluation mode is active, so no email was sent.",
+      icon: FiSend,
+    };
+  }
+
+  if (
+    metadata.expert_handoff_pending_confirmation === true ||
+    text.includes("do you want me to send it")
+  ) {
+    return {
+      tone: "pending",
+      label: "Expert handoff pending",
+      detail: "Waiting for the user to confirm before sending.",
+      icon: FiClock,
+    };
+  }
+
+  return null;
 };
 
 const getSourceTitle = (source) => {
@@ -543,7 +596,7 @@ const markdownComponents = {
     </pre>
   ),
   blockquote: ({ children }) => (
-    <blockquote className="my-4 border-l-4 border-primary/40 pl-4 italic text-base-content/80">
+    <blockquote className="my-4 border-l-4 border-primary/40 pl-4 italic text-current opacity-80">
       {children}
     </blockquote>
   ),
@@ -650,6 +703,35 @@ function SourceReferences({ sources, anchorPrefix }) {
   );
 }
 
+const handoffStatusClasses = {
+  success: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  error: "border-red-200 bg-red-50 text-red-800",
+  info: "border-sky-200 bg-sky-50 text-sky-800",
+  pending: "border-amber-200 bg-amber-50 text-amber-900",
+};
+
+function ExpertHandoffStatus({ status }) {
+  if (!status) {
+    return null;
+  }
+
+  const Icon = status.icon;
+
+  return (
+    <div
+      className={`mb-3 flex items-start gap-2 rounded-md border px-3 py-2 text-xs leading-5 ${
+        handoffStatusClasses[status.tone] || handoffStatusClasses.info
+      }`}
+    >
+      <Icon aria-hidden="true" className="mt-0.5 shrink-0" size={15} />
+      <div>
+        <div className="font-semibold">{status.label}</div>
+        <div className="opacity-80">{status.detail}</div>
+      </div>
+    </div>
+  );
+}
+
 function Message({ children, position, time, message }) {
   const { showToast } = useAuth();
   const report = message?.downloadable_report;
@@ -663,6 +745,10 @@ function Message({ children, position, time, message }) {
   const buildingContext = isAssistantMessage
     ? buildBuildingContext(message?.metadata)
     : null;
+  const expertHandoffStatus =
+    isAssistantMessage && isExpertHandoffMessage(message, children)
+      ? getExpertHandoffStatus(message, children)
+      : null;
   const formattedContent = isAssistantMessage
     ? addCitationMarkers(
         formatAssistantMessage(children),
@@ -692,19 +778,22 @@ function Message({ children, position, time, message }) {
         <div
           className={`chat-bubble ${
             isAssistantMessage
-              ? "max-w-[min(46rem,calc(100vw-5rem))] text-left"
+              ? "assistant-message-bubble max-w-[min(46rem,calc(100vw-5rem))] text-left"
               : "max-w-[min(34rem,calc(100vw-5rem))]"
           }`}
         >
           <div
             className={
               isAssistantMessage
-                ? "prose prose-sm max-w-none text-base-content sm:prose-base prose-p:my-2 prose-headings:mb-3 prose-headings:mt-5 prose-headings:text-inherit prose-strong:text-inherit prose-li:text-inherit prose-ul:my-2 prose-ol:my-2 prose-code:text-inherit prose-pre:my-4"
+                ? "assistant-markdown prose prose-invert prose-sm max-w-none !text-inherit sm:prose-base prose-p:my-2 prose-p:!text-inherit prose-headings:mb-3 prose-headings:mt-5 prose-headings:!text-inherit prose-strong:!text-inherit prose-li:!text-inherit prose-ul:my-2 prose-ul:!text-inherit prose-ol:my-2 prose-ol:!text-inherit prose-code:!text-inherit prose-pre:my-4"
                 : "break-words whitespace-pre-wrap leading-6"
             }
           >
             {isAssistantMessage && (
               <BuildingContextBlock context={buildingContext} />
+            )}
+            {isAssistantMessage && (
+              <ExpertHandoffStatus status={expertHandoffStatus} />
             )}
             <ReactMarkdown components={markdownComponents}>
               {formattedContent}

@@ -1,9 +1,18 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { HiMenu, HiOutlineUserCircle, HiLogout, HiOutlineLogin, HiOutlineUserAdd } from "react-icons/hi";
+import {
+  HiDownload,
+  HiMenu,
+  HiOutlineInformationCircle,
+  HiOutlineUserCircle,
+  HiLogout,
+  HiOutlineLogin,
+  HiOutlineUserAdd,
+} from "react-icons/hi";
 import Button from "../Button";
 import { useAuth } from "../../context/authContext";
 import LogoutModal from "../modal/LogoutModal";
+import { downloadEvaluationRecords } from "../../services/api";
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const toggleSidebar = () => {
@@ -11,10 +20,19 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   };
 
   // Pull sessions + user + logout from your auth context
-  const { sessions, user } = useAuth();
+  const { sessions, showToast, user } = useAuth();
   const navigate = useNavigate();
 
   const [isLogoutModalOpen, setLogoutModalOpen] = useState(false);
+
+  const handleDownloadEvaluation = async () => {
+    try {
+      await downloadEvaluationRecords({ format: "csv" });
+    } catch (error) {
+      console.error("Failed to export evaluation records:", error);
+      showToast("Failed to export evaluation records", "error");
+    }
+  };
 
   return (
     <div className="relative">
@@ -52,9 +70,20 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             <li>
               <NavLink
                 to="/"
+                onClick={() => setIsCollapsed(true)}
                 className="block px-2 py-1 hover:bg-gray-700 rounded"
               >
                 New Chat
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/about"
+                onClick={() => setIsCollapsed(true)}
+                className="flex items-center gap-2 rounded px-2 py-1 hover:bg-gray-700"
+              >
+                <HiOutlineInformationCircle aria-hidden="true" size={18} />
+                About
               </NavLink>
             </li>
             {sessions?.length > 0 && (
@@ -68,6 +97,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                     <li key={session.session_token}>
                       <NavLink
                         to={`/chat/${encodeURIComponent(session.session_token)}`}
+                        onClick={() => setIsCollapsed(true)}
                         className="block px-2 py-1 hover:bg-gray-700 rounded"
                       >
                         {`Chat ${session.session_id}`}
@@ -130,17 +160,30 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                     </li>
                   </>
                 ) : (
-                  <li className="p-1">
-                    <Button
-                      text="Logout"
-                      icon={<HiLogout />}
-                      onClick={() => setLogoutModalOpen(true)}
-                      color="bg-transparent hover:bg-base-300"
-                      textColor="text-base-content"
-                      size="w-full justify-start"
-                      iconSize={16}
-                    />
-                  </li>
+                  <>
+                    <li className="p-1">
+                      <Button
+                        text="Export evaluation CSV"
+                        icon={<HiDownload />}
+                        onClick={handleDownloadEvaluation}
+                        color="bg-transparent hover:bg-base-300"
+                        textColor="text-base-content"
+                        size="w-full justify-start"
+                        iconSize={16}
+                      />
+                    </li>
+                    <li className="p-1">
+                      <Button
+                        text="Logout"
+                        icon={<HiLogout />}
+                        onClick={() => setLogoutModalOpen(true)}
+                        color="bg-transparent hover:bg-base-300"
+                        textColor="text-base-content"
+                        size="w-full justify-start"
+                        iconSize={16}
+                      />
+                    </li>
+                  </>
                 )
               }
             </ul>

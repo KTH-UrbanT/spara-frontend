@@ -7,9 +7,14 @@ import Button from "../Button";
 
 const SendPanel = () => {
   const { handleSendMessage, handleSendFirstMessage } = useSocket();
-  const { selectedSession, showToast, user } = useAuth(); // Get the selected session from the context
+  const { selectedSession, sessions, showToast, user } = useAuth(); // Get the selected session from the context
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
+  const selectedSessionRecord = Array.isArray(sessions)
+    ? sessions.find((session) => session.session_token === selectedSession)
+    : null;
+  const isCurrentSessionInactive =
+    selectedSession !== null && selectedSessionRecord?.is_active === false;
 
   const sendMessage = async () => {
     // Check if the message is not empty
@@ -22,6 +27,9 @@ const SendPanel = () => {
 
       if (selectedSession === null) {
         handleSendFirstMessage(message, user); // Handle sending the first message when no session is selected
+      } else if (isCurrentSessionInactive) {
+        showToast("Reactivate this session before sending a message.", "warning");
+        return;
       } else {
         handleSendMessage(message); // Send the message in the current session
       }
@@ -73,11 +81,13 @@ const SendPanel = () => {
         value={message}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
+        disabled={isCurrentSessionInactive}
         className="textarea flex-grow h-12 max-h-40 me-2 p-2 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-indigo-200 focus:border-indigo-300 resize-none overflow-auto"
       />
       <Button
         icon={<HiPaperAirplane style={{ transform: "rotate(90deg)" }} />}
         type="submit"
+        disabled={isCurrentSessionInactive}
       />
     </form>
   );

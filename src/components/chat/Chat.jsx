@@ -3,6 +3,7 @@ import { useSocket } from "../../context/socketContext";
 import { useAuth } from "../../context/authContext";
 import Dialogue from "./Dialogue";
 import SendPanel from "./SendPanel";
+import SessionStatusBar from "./SessionStatusBar";
 
 const Chat = () => {
   const { messages } = useSocket();
@@ -10,6 +11,7 @@ const Chat = () => {
 
   return (
     <>
+      <SessionStatusBar />
       <Dialogue
         messages={messages}
         loadingStatus={sessionLoadingStatus?.[selectedSession]}
