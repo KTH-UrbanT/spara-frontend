@@ -16,7 +16,7 @@ const DASH_BULLET_PATTERN = /^(\s*)[–—]\s+(.+)$/;
 const NUMBERED_LIST_VARIANT_PATTERN =
   /^(\s*)(\d{1,3})\s*(?:[),:;]|[-–—])\s+(.+)$/;
 const SPACED_ORDERED_LIST_PATTERN = /^(\s*)(\d{1,3})\s*\.\s+(.+)$/;
-const ORDERED_LIST_LINE_PATTERN = /^(\s*)\d{1,3}\.\s+(.+)$/;
+const ORDERED_LIST_LINE_PATTERN = /^(\s*)(\d{1,3})\.\s+(.+)$/;
 const UNORDERED_LIST_LINE_PATTERN = /^(\s*)[-*+]\s+(.+)$/;
 
 const isPresent = (value) => value !== undefined && value !== null && value !== "";
@@ -405,7 +405,7 @@ const formatAssistantMessage = (content) => {
         .trimEnd()
     );
   const lines = [];
-  let activeOrderedIndent = null;
+  let activeOrderedList = null;
 
   normalizedLines.forEach((line) => {
     const orderedMatch = line.match(ORDERED_LIST_LINE_PATTERN);
@@ -413,22 +413,26 @@ const formatAssistantMessage = (content) => {
     const trimmed = line.trim();
 
     if (orderedMatch) {
-      activeOrderedIndent = orderedMatch[1].length;
+      const markerIndent = orderedMatch[1].length;
+      activeOrderedList = {
+        markerIndent,
+        nestedIndent: markerIndent + orderedMatch[2].length + 2,
+      };
       lines.push(line);
       return;
     }
 
-    if (unorderedMatch && activeOrderedIndent !== null) {
+    if (unorderedMatch && activeOrderedList !== null) {
       const bulletIndent = unorderedMatch[1].length;
 
-      if (bulletIndent <= activeOrderedIndent + 1) {
-        lines.push(`${" ".repeat(activeOrderedIndent + 3)}- ${unorderedMatch[2]}`);
+      if (bulletIndent <= activeOrderedList.markerIndent + 1) {
+        lines.push(`${" ".repeat(activeOrderedList.nestedIndent)}- ${unorderedMatch[2]}`);
         return;
       }
     }
 
     if (trimmed && !unorderedMatch) {
-      activeOrderedIndent = null;
+      activeOrderedList = null;
     }
 
     lines.push(line);
@@ -490,14 +494,17 @@ const formatAssistantMessage = (content) => {
 };
 
 const markdownComponents = {
-  p: ({ children }) => <p className="my-3 leading-7">{children}</p>,
+  p: ({ children }) => <p className="my-2 leading-7">{children}</p>,
   ul: ({ children }) => (
-    <ul className="my-4 list-disc space-y-2 pl-5 marker:text-primary">
+    <ul className="my-2 list-disc space-y-1.5 pl-5 marker:text-primary">
       {children}
     </ul>
   ),
-  ol: ({ children }) => (
-    <ol className="my-4 list-decimal space-y-2 pl-5 marker:font-semibold">
+  ol: ({ children, start }) => (
+    <ol
+      start={start}
+      className="my-2 list-decimal space-y-2 pl-5 marker:font-semibold"
+    >
       {children}
     </ol>
   ),
@@ -692,7 +699,7 @@ function Message({ children, position, time, message }) {
           <div
             className={
               isAssistantMessage
-                ? "prose prose-sm max-w-none text-base-content sm:prose-base prose-p:my-3 prose-headings:mb-3 prose-headings:mt-5 prose-headings:text-inherit prose-strong:text-inherit prose-li:text-inherit prose-ul:my-4 prose-ol:my-4 prose-code:text-inherit prose-pre:my-4"
+                ? "prose prose-sm max-w-none text-base-content sm:prose-base prose-p:my-2 prose-headings:mb-3 prose-headings:mt-5 prose-headings:text-inherit prose-strong:text-inherit prose-li:text-inherit prose-ul:my-2 prose-ol:my-2 prose-code:text-inherit prose-pre:my-4"
                 : "break-words whitespace-pre-wrap leading-6"
             }
           >
