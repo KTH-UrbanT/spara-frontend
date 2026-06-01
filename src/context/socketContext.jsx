@@ -20,6 +20,48 @@ import { useAuth } from "./authContext";
 
 const SocketContext = createContext();
 
+const fallbackMessageKey = (message) =>
+  [
+    message?.role || "",
+    message?.timestamp ?? message?.sent_at ?? "",
+    message?.content || "",
+  ].join("|");
+
+const mergeMessagesWithExistingRatings = (currentMessages, incomingMessages) => {
+  const currentList = Array.isArray(currentMessages) ? currentMessages : [];
+  const incomingList = Array.isArray(incomingMessages) ? incomingMessages : [];
+  const currentById = new Map();
+  const currentByFallback = new Map();
+
+  currentList.forEach((message) => {
+    if (message?.message_id != null) {
+      currentById.set(message.message_id, message);
+    }
+    currentByFallback.set(fallbackMessageKey(message), message);
+  });
+
+  return incomingList.map((message) => {
+    if (message?.rating != null || message?.rating_id != null) {
+      return message;
+    }
+
+    const existing =
+      (message?.message_id != null ? currentById.get(message.message_id) : null) ||
+      currentByFallback.get(fallbackMessageKey(message));
+
+    if (!existing || (existing.rating == null && existing.rating_id == null)) {
+      return message;
+    }
+
+    return {
+      ...message,
+      rating: existing.rating ?? message.rating ?? null,
+      rating_id: existing.rating_id ?? message.rating_id ?? null,
+      version: message.version ?? existing.version,
+    };
+  });
+};
+
 export const SocketProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
   const [isConnected, setIsConnected] = useState(socket.connected);
@@ -101,7 +143,9 @@ export const SocketProvider = ({ children }) => {
           return;
         }
 
-        setMessages(Array.isArray(session.messages) ? session.messages : []);
+        setMessages((currentMessages) =>
+          mergeMessagesWithExistingRatings(currentMessages, session.messages)
+        );
 
         const lastMessage = session.messages?.[session.messages.length - 1];
         if (lastMessage?.role === "assistant") {
@@ -176,7 +220,12 @@ export const SocketProvider = ({ children }) => {
     return undefined;
   }, [selectedSession, selectedSessionInt, user?.user_id, user?.email]);
 
-  const updateMessageRating = (targetMessage, rating, ratingId = null) => {
+  const updateMessageRating = (
+    targetMessage,
+    rating,
+    ratingId = null,
+    messageId = null
+  ) => {
     setMessages((currentMessages) =>
       currentMessages.map((message) => {
         const sameMessageId =
@@ -194,6 +243,7 @@ export const SocketProvider = ({ children }) => {
 
         return {
           ...message,
+          message_id: messageId ?? message?.message_id ?? null,
           rating,
           rating_id: ratingId ?? message?.rating_id ?? null,
         };

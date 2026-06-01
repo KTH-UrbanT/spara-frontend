@@ -204,12 +204,16 @@ export async function getUserInfo(userId) {
   }
 }
 
-export async function sendRating(userId, rating, message, sessionIdInt) {
+export async function sendRating(userId, rating, message, sessionIdInt, messageId = null) {
   try {
     console.log( "User: " + userId + " is sending a " + rating + ", as rating for: " + message)
+    const payload = { userId, rating, message, sessionIdInt };
+    if (messageId != null) {
+      payload.messageId = messageId;
+    }
     const response = await axios.post(
       `${VITE_MS_URL}/rating/`,
-      {userId, rating, message, sessionIdInt}, {
+      payload, {
       headers: getAuthHeaders()
     });
     return response.data;

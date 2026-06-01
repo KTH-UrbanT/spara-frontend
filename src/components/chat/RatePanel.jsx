@@ -19,8 +19,14 @@ function RatePanel({ message }) {
       const user = JSON.parse(localStorage.getItem("user")) || null;
       const userId = user.user_id;
       const sessionIdInt = JSON.parse(localStorage.getItem("session_id_int"));
-      const result = await sendRating(userId, star, message.content, sessionIdInt);
-      updateMessageRating(message, star, result?.rating_id ?? null);
+      const result = await sendRating(
+        userId,
+        star,
+        message.content,
+        sessionIdInt,
+        message?.message_id ?? null
+      );
+      updateMessageRating(message, star, result?.rating_id ?? null, result?.message_id ?? null);
       showToast("Rating sent", "success");
       setSelectedRating(star);
     } catch (error) {
