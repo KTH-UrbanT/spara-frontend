@@ -318,6 +318,14 @@ const formatFactValue = (value, suffix = "") => {
 };
 
 const buildBuildingContext = (metadata) => {
+  if (
+    metadata?.needs_clarification === true ||
+    metadata?.route === "clarification" ||
+    metadata?.clarification?.needed === true
+  ) {
+    return null;
+  }
+
   const facts = metadata?.retrieved_facts || {};
   const buildingMatch = metadata?.building_match || {};
   const address =
