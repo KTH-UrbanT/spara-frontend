@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { FiPauseCircle, FiPlayCircle } from "react-icons/fi";
+import { FiCopy, FiPauseCircle, FiPlayCircle } from "react-icons/fi";
 import { updateSessionActiveState } from "../../services/api";
 import { useAuth } from "../../context/authContext";
 
@@ -24,6 +24,7 @@ function SessionStatusBar() {
 
   const isActive = session.is_active !== false;
   const nextIsActive = !isActive;
+  const evaluationId = session.session_id ? `spara-session-${session.session_id}` : "";
 
   const handleToggle = async () => {
     try {
@@ -59,6 +60,26 @@ function SessionStatusBar() {
     }
   };
 
+  const handleCopyEvaluationId = async () => {
+    if (!evaluationId) {
+      return;
+    }
+
+    const payload = [
+      `Evaluation ID: ${evaluationId}`,
+      `Session ID: ${session.session_id}`,
+      `Session token: ${session.session_token}`,
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(payload);
+      showToast("Evaluation ID copied", "success");
+    } catch (error) {
+      console.error("Failed to copy evaluation ID:", error);
+      showToast("Could not copy the evaluation ID", "error");
+    }
+  };
+
   const Icon = isActive ? FiPauseCircle : FiPlayCircle;
 
   return (
@@ -72,11 +93,19 @@ function SessionStatusBar() {
       <div className="min-w-0 flex-1">
         <div className="font-medium">{isActive ? "Session active" : "Session inactive"}</div>
         <div className="truncate text-xs text-base-content/60">
-          {isActive
-            ? "SPARA can respond to new messages in this chat."
-            : "Reactivate this chat before sending another message."}
+          {evaluationId}
         </div>
       </div>
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm shrink-0 px-2"
+        onClick={handleCopyEvaluationId}
+        disabled={!evaluationId}
+        title="Copy evaluation ID"
+        aria-label="Copy evaluation ID"
+      >
+        <FiCopy aria-hidden="true" size={16} />
+      </button>
       <button
         type="button"
         className={`btn btn-sm shrink-0 ${isActive ? "btn-outline" : "btn-primary"}`}

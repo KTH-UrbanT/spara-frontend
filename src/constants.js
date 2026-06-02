@@ -18,6 +18,7 @@ export const EVENTS = {
   ESTABLISH_SESSION: "establish_session",
   SESSION_CREATED: "session_created",
   SESSION_UPDATED: "session_updated",
+  ERROR_MESSAGE: "error_message",
   USER_CONNECTED: "user_connected",
   USER_DISCONNECTED: "user_disconnected",
 };

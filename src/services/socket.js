@@ -45,13 +45,27 @@ socket.on("session_created", (session) => {
   console.log("Session created:", session);
 });
 
+const emitEvent = (eventName, ...args) => {
+  if (!socket.connected && !socket.active) {
+    socket.connect();
+  }
+  socket.emit(eventName, ...args);
+  return true;
+};
+
 // Event handling functions
 export const sendMessage = (message, sessionId, sessionIdInt) => {
-  socket.emit(EVENTS.MESSAGE_SEND, message, sessionId, sessionIdInt);
+  if (!message || !sessionId || !sessionIdInt) {
+    return false;
+  }
+  return emitEvent(EVENTS.MESSAGE_SEND, message, sessionId, sessionIdInt);
 };
 
 export const createNewSession = (message, userId, email) => {
-  socket.emit(EVENTS.CREATE_NEW_SESSION, message, userId, email);
+  if (!message || !userId || !email) {
+    return false;
+  }
+  return emitEvent(EVENTS.CREATE_NEW_SESSION, message, userId, email);
 };
 
 export const establishSession = (sessionId, sessionIdInt, userId, email) => {
@@ -78,6 +92,10 @@ export const listenForSessionCreated = (callback) => {
   socket.on(EVENTS.SESSION_CREATED, callback);
 }
 
+export const listenForErrors = (callback) => {
+  socket.on(EVENTS.ERROR_MESSAGE, callback);
+};
+
 // Cleanup function to remove listeners
 export const removeMessageListener = (callback) => {
   socket.off(EVENTS.MESSAGE_RECEIVE, callback);
@@ -98,6 +116,10 @@ export const removeSessionUpdatedListener = (callback) => {
 export const removeSessionCreatedListener = (callback) => {
   socket.off(EVENTS.SESSION_CREATED, callback);
 }
+
+export const removeErrorListener = (callback) => {
+  socket.off(EVENTS.ERROR_MESSAGE, callback);
+};
 
 // Export socket instance and helper functions
 export default socket;

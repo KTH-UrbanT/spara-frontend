@@ -9,11 +9,13 @@ import socket, {
   listenForProcessingStatus,
   listenForSessionUpdates,
   listenForSessionCreated,
+  listenForErrors,
   removeMessageListener,
   removeAnswerListener,
   removeProcessingStatusListener,
   removeSessionUpdatedListener,
   removeSessionCreatedListener,
+  removeErrorListener,
 } from "../services/socket";
 import { getMessagesBySession, getSessionsByUser } from "../services/api";
 import { useAuth } from "./authContext";
@@ -172,6 +174,12 @@ export const SocketProvider = ({ children }) => {
 
         setSessionProcessingStatus(selectedSession, statusPayload);
       };
+      const handleErrorMessage = (payload) => {
+        const detail = payload?.error || payload?.message || "SPARA could not process that message.";
+        console.error("Socket error:", payload);
+        setSessionIsLoading(selectedSession, false);
+        showToast(detail, "error");
+      };
 
       getMessagesBySession(selectedSessionInt)
         .then((savedMessages) => {
@@ -191,6 +199,7 @@ export const SocketProvider = ({ children }) => {
       listenForMessages(handleMessageReceive);
       listenForAnswers(handleAnswerReceive);
       listenForProcessingStatus(handleProcessingStatus);
+      listenForErrors(handleErrorMessage);
 
       socket.auth = chatAuth;
       socket.connect();
@@ -213,6 +222,7 @@ export const SocketProvider = ({ children }) => {
         removeAnswerListener(handleAnswerReceive);
         removeProcessingStatusListener(handleProcessingStatus);
         removeSessionUpdatedListener(handleSessionUpdate);
+        removeErrorListener(handleErrorMessage);
       };
     }
 
@@ -254,7 +264,7 @@ export const SocketProvider = ({ children }) => {
   const handleSendFirstMessage = (message, identityUser = user) => {
     if (!identityUser?.user_id || !identityUser?.email) {
       showToast("Email is required to start a chat.", "error");
-      return;
+      return false;
     }
 
     const handleSessionCreated = async (session) => {
@@ -280,7 +290,10 @@ export const SocketProvider = ({ children }) => {
       // Send the first message after session creation
       try {
         setSessionIsLoading(session.session_id, true);
-        sendMessage(message, session.session_id, session.session_id_int);
+        const sent = sendMessage(message, session.session_id, session.session_id_int);
+        if (!sent) {
+          throw new Error("The new chat session was created, but the message could not be sent.");
+        }
       } catch (error) {
         console.error("Failed to send message:", error);
         showToast("Failed to send message!", "error");
@@ -299,8 +312,13 @@ export const SocketProvider = ({ children }) => {
     socket.connect();
     console.log("Temporary socket connected for new session creation.");
 
-    createNewSession(message, identityUser.user_id, identityUser.email);
-    return;
+    const queued = createNewSession(message, identityUser.user_id, identityUser.email);
+    if (!queued) {
+      removeSessionCreatedListener(handleSessionCreated);
+      showToast("Failed to create chat session.", "error");
+      return false;
+    }
+    return true;
   }
 
 
@@ -308,20 +326,27 @@ export const SocketProvider = ({ children }) => {
     try {
       if (!selectedSessionInt) {
         showToast("The chat session is still loading. Please try again in a moment.", "error");
-        return;
+        return false;
       }
 
       if (!user?.email) {
         showToast("Email is required to send a message.", "error");
-        return;
+        return false;
       }
 
       setSessionIsLoading(selectedSession, true);
-      sendMessage(message, selectedSession, selectedSessionInt);
+      const sent = sendMessage(message, selectedSession, selectedSessionInt);
+      if (!sent) {
+        setSessionIsLoading(selectedSession, false);
+        showToast("Failed to send message. Please retry.", "error");
+        return false;
+      }
+      return true;
     } catch (error) {
       console.error("Failed to send message:", error);
       showToast("Failed to send message!", "error");
       setSessionIsLoading(selectedSession, false);
+      return false;
     }
   };
 

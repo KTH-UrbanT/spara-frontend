@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { HiPaperAirplane } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/authContext";
@@ -9,6 +9,8 @@ const SendPanel = () => {
   const { handleSendMessage, handleSendFirstMessage } = useSocket();
   const { selectedSession, sessions, showToast, user } = useAuth(); // Get the selected session from the context
   const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const textareaRef = useRef(null);
   const navigate = useNavigate();
   const selectedSessionRecord = Array.isArray(sessions)
     ? sessions.find((session) => session.session_token === selectedSession)
@@ -18,28 +20,39 @@ const SendPanel = () => {
 
   const sendMessage = async () => {
     // Check if the message is not empty
-    if (message.trim()) {
+    if (isSubmitting) {
+      return;
+    }
+
+    const text = message;
+    if (text.trim()) {
       if (!user?.email) {
         showToast("Please log in or register to start a chat.", "error");
         navigate("/login");
         return;
       }
 
+      setIsSubmitting(true);
+      let sent = false;
       if (selectedSession === null) {
-        handleSendFirstMessage(message, user); // Handle sending the first message when no session is selected
+        sent = handleSendFirstMessage(text, user); // Handle sending the first message when no session is selected
       } else if (isCurrentSessionInactive) {
         showToast("Reactivate this session before sending a message.", "warning");
+        setIsSubmitting(false);
         return;
       } else {
-        handleSendMessage(message); // Send the message in the current session
+        sent = handleSendMessage(text); // Send the message in the current session
       }
-      setMessage(""); // Clear the input after sending
 
-      // Reset the height of the textarea
-      const textarea = document.querySelector("#chatTextarea");
-      if (textarea) {
-        textarea.style.height = "3rem"; // Equivalent to h-12 in Tailwind
+      if (sent) {
+        setMessage(""); // Clear the input after sending
+
+        // Reset the height of the textarea
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "3rem"; // Equivalent to h-12 in Tailwind
+        }
       }
+      setIsSubmitting(false);
     } else {
       showToast("Message cannot be empty!", "error");
     }
@@ -76,18 +89,19 @@ const SendPanel = () => {
       className="send-panel flex my-4 w-full max-w-xl items-center"
     >
       <textarea
+        ref={textareaRef}
         id="chatTextarea"
         placeholder="Type a message..."
         value={message}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        disabled={isCurrentSessionInactive}
+        disabled={isCurrentSessionInactive || isSubmitting}
         className="textarea flex-grow h-12 max-h-40 me-2 p-2 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-indigo-200 focus:border-indigo-300 resize-none overflow-auto"
       />
       <Button
         icon={<HiPaperAirplane style={{ transform: "rotate(90deg)" }} />}
         type="submit"
-        disabled={isCurrentSessionInactive}
+        disabled={isCurrentSessionInactive || isSubmitting}
       />
     </form>
   );

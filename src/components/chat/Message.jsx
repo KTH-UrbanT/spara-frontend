@@ -385,13 +385,24 @@ const buildBuildingContext = (metadata) => {
       ),
     },
     {
+      label: "Energy performance",
+      value: formatFactValue(
+        getField(facts, [
+          "energy_performance",
+          "epc_egienergiprestanda",
+          "EnergyClassKwhM2",
+        ]),
+        " kWh/m2"
+      ),
+    },
+    {
       label: "Specific energy use",
       value: formatFactValue(
         getField(facts, [
+          "specific_energy_use",
+          "epc_egispecifikenergianvandning",
           "epc_egispecifikenergianvandning_calc",
-          "epc_egienergiprestanda",
-          "energy_performance",
-          "EnergyClassKwhM2",
+          "epc_egispecifikenergianvandning_eindex_calc",
         ]),
         " kWh/m2"
       ),
@@ -400,10 +411,12 @@ const buildBuildingContext = (metadata) => {
       label: "Primary energy number",
       value: formatFactValue(
         getField(facts, [
+          "primary_energy_number",
+          "primary_energy",
           "epc_egiprimarenergital2020_calc",
           "epc_egiprimarenergital2020",
-          "primary_energy",
-          "primary_energy_number",
+          "epc_egiprimarenergital2019",
+          "epc_egiprimarenergital",
         ]),
         " kWh/m2"
       ),
