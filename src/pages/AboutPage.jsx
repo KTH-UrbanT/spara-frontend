@@ -11,7 +11,7 @@ function AboutPage() {
           <h2 className="text-xl font-semibold">What SPARA Can Help With</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-base-content/75">
             <li>Explain building energy concepts and common efficiency measures.</li>
-            <li>Use available building context when you provide a BRF name, address, or building ID.</li>
+            <li>Use available building context when you provide a BRF name or address.</li>
             <li>Prepare a concise handoff to an EKR expert after you confirm that it should be sent.</li>
           </ul>
         </section>

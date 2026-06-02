@@ -337,11 +337,6 @@ const buildBuildingContext = (metadata) => {
     metadata?.epc_record_address ||
     (metadata?.same_building_multiple_addresses ? getField(facts, ["epc_idadr", "official_address"]) : null);
   const buildingName = getField(facts, ["brf_name", "building_name", "buildingName"]);
-  const buildingId =
-    metadata?.building_id ||
-    buildingMatch.building_id ||
-    getField(facts, ["building_id", "byggnadsid", "50a_uuid", "uuid", "oden_uuid"]);
-
   const details = [
     ...(isPresent(epcRecordAddress) && normalizeText(epcRecordAddress) !== normalizeText(address)
       ? [
@@ -431,14 +426,13 @@ const buildBuildingContext = (metadata) => {
     },
   ].filter((item) => isPresent(item.value));
 
-  if (!address && !buildingName && !buildingId && details.length === 0) {
+  if (!address && !buildingName && details.length === 0) {
     return null;
   }
 
   return {
     address,
     buildingName,
-    buildingId,
     details,
   };
 };
@@ -644,11 +638,6 @@ function BuildingContextBlock({ context }) {
             </div>
           )}
           <div className="mt-2 flex flex-wrap gap-2">
-            {context.buildingId && (
-              <span className="rounded-md border border-base-300 bg-base-200/60 px-2 py-1 text-xs text-base-content/70">
-                ID {context.buildingId}
-              </span>
-            )}
             {context.details.map((item) => (
               <span
                 key={`${item.label}-${item.value}`}

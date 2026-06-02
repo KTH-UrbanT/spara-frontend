@@ -19,7 +19,7 @@ function WelcomeInstructions({ compact = false }) {
           <p className="mt-2 text-sm leading-6 text-base-content/70">
             Ask about energy use, building data, improvement measures, or how to
             prepare information for an advisor. For building-specific advice,
-            include a BRF name, street address, or building ID.
+            include a BRF name or street address.
           </p>
           <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
             <FiAlertCircle aria-hidden="true" className="mt-0.5 shrink-0" size={15} />
