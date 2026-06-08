@@ -623,12 +623,15 @@ function BuildingContextBlock({ context }) {
   }
 
   return (
-    <div className="mb-4 rounded-lg border border-base-300/80 bg-base-100/70 p-3 text-base-content shadow-sm">
+    <div className="mb-3 rounded-lg border border-base-300/80 bg-base-100/70 p-3 text-base-content shadow-sm">
       <div className="flex items-start gap-3">
         <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-700">
           <FiHome aria-hidden="true" size={18} />
         </div>
         <div className="min-w-0 flex-1">
+          <div className="text-xs font-medium text-base-content/55">
+            Building identified
+          </div>
           <div className="truncate text-base font-semibold leading-6">
             {context.address || context.buildingName || "Identified building"}
           </div>
@@ -637,17 +640,24 @@ function BuildingContextBlock({ context }) {
               {context.buildingName}
             </div>
           )}
-          <div className="mt-2 flex flex-wrap gap-2">
-            {context.details.map((item) => (
-              <span
-                key={`${item.label}-${item.value}`}
-                className="rounded-md border border-base-300 bg-base-200/60 px-2 py-1 text-xs text-base-content/70"
-              >
-                <span className="font-medium text-base-content/80">{item.label}:</span>{" "}
-                {item.value}
-              </span>
-            ))}
-          </div>
+          {context.details.length > 0 && (
+            <details className="mt-1 text-xs text-base-content/65">
+              <summary className="cursor-pointer select-none font-medium text-base-content/70">
+                Building details
+              </summary>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {context.details.map((item) => (
+                  <span
+                    key={`${item.label}-${item.value}`}
+                    className="rounded-md border border-base-300 bg-base-200/60 px-2 py-1 text-xs text-base-content/70"
+                  >
+                    <span className="font-medium text-base-content/80">{item.label}:</span>{" "}
+                    {item.value}
+                  </span>
+                ))}
+              </div>
+            </details>
+          )}
         </div>
       </div>
     </div>

@@ -24,8 +24,10 @@ const Root = () => {
     }
   }, [location.pathname, params.chatId, setSelectedSession]);
 
-  // Hide sidebar on /login or /register
-  const hideSidebar = location.pathname === "/login" || location.pathname === "/register";
+  // Hide sidebar on focused pages
+  const hideSidebar = ["/login", "/register", "/expertreportgenerator"].includes(
+    location.pathname
+  );
 
   useEffect(() => {
     if (hideSidebar) {

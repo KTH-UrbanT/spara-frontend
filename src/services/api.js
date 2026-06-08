@@ -255,6 +255,22 @@ export async function downloadDraftReport(reportId, fileName = "draft_energy_rep
   }
 }
 
+export async function generateExpertReport(reportInput) {
+  try {
+    const response = await axios.post(
+      `${VITE_MS_URL}/expert-reports/generate/`,
+      reportInput,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to generate expert report:", error);
+    throw error;
+  }
+}
+
 export async function downloadEvaluationRecords({
   format = "jsonl",
   userId = null,

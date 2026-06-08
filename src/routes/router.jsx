@@ -6,6 +6,7 @@ import Root from "./Root";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import AboutPage from "../pages/AboutPage";
+import ExpertReportGenerator from "../pages/ExpertReportGenerator";
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +28,10 @@ export const router = createBrowserRouter([
       {
         path: "about",
         element: <AboutPage />
+      },
+      {
+        path: "expertreportgenerator",
+        element: <ExpertReportGenerator />
       },
       {
         path: "login",

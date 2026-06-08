@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   HiDownload,
   HiMenu,
+  HiOutlineDocumentReport,
   HiOutlineInformationCircle,
   HiOutlineUserCircle,
   HiLogout,
@@ -74,6 +75,16 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                 className="block px-2 py-1 hover:bg-gray-700 rounded"
               >
                 New Chat
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/expertreportgenerator"
+                onClick={() => setIsCollapsed(true)}
+                className="flex items-center gap-2 rounded px-2 py-1 hover:bg-gray-700"
+              >
+                <HiOutlineDocumentReport aria-hidden="true" size={18} />
+                Expert Report Generator
               </NavLink>
             </li>
             <li>
