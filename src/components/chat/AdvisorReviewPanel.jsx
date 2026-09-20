@@ -116,20 +116,23 @@ const buildDiagnostics = (metadata = {}) => {
   }
 
   if (
+    metadata?.expert_handoff_status ||
     metadata?.expert_handoff_pending_confirmation ||
     metadata?.expert_handoff_requested ||
     metadata?.expert_handoff_sent !== undefined ||
     metadata?.expert_handoff_error
   ) {
     const sent = metadata?.expert_handoff_sent === true;
-    const failed = Boolean(metadata?.expert_handoff_error);
-    const pending = metadata?.expert_handoff_pending_confirmation === true;
+    const status = metadata?.expert_handoff_status;
+    const failed = status === "failed" || (!status && Boolean(metadata?.expert_handoff_error));
+    const pending = status === "pending_confirmation" || (!status && metadata?.expert_handoff_pending_confirmation === true);
     diagnostics.push({
       key: "expert-handoff",
       label: "Handoff",
-      value: failed ? "failed" : sent ? "sent" : pending ? "pending" : "requested",
-      detail: metadata?.expert_handoff_error || "",
-      tone: failed || pending ? "warning" : "good",
+      value: status || (failed ? "failed" : sent ? "submitted" : pending ? "pending" : "requested"),
+      detail: failed ? metadata?.expert_handoff_error || "" : "",
+      tone: failed || pending || status === "unknown" || status === "sending" || status === "disabled"
+        ? "warning" : status === "submitted" || (!status && sent) ? "good" : "neutral",
     });
   }
 

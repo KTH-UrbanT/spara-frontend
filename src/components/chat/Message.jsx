@@ -56,25 +56,42 @@ const getExpertHandoffStatus = (message, content) => {
   const metadata = message?.metadata || {};
   const text = normalizeText(content);
 
-  if (metadata.expert_handoff_error || text.includes("could not send the email")) {
+  const status = metadata.expert_handoff_status;
+  if (status === "unknown" || status === "sending") {
+    return {
+      tone: "pending", label: "Expert handoff status uncertain",
+      detail: "Submission could not be confirmed. Check with the advisor before retrying to avoid a duplicate.",
+      icon: FiAlertTriangle,
+    };
+  }
+  if (status === "disabled" || status === "cancelled") {
+    return {
+      tone: "info", label: status === "disabled" ? "Expert handoff unavailable" : "Expert handoff cancelled",
+      detail: "No email was submitted. You can copy the summary and contact an advisor yourself.",
+      icon: FiSend,
+    };
+  }
+  if (status === "failed" || (!status && (metadata.expert_handoff_error || text.includes("could not send the email")))) {
     return {
       tone: "error",
       label: "Expert handoff failed",
-      detail: "The email was not sent. Please try again later.",
+      detail: "Submission failed. Use the copyable summary or review the error before retrying.",
       icon: FiAlertTriangle,
     };
   }
 
-  if (metadata.expert_handoff_sent === true || text.includes("email was sent successfully")) {
+  if (status === "submitted" || (!status && metadata.expert_handoff_sent === true)) {
     return {
       tone: "success",
-      label: "Expert handoff sent",
-      detail: metadata.user_email ? "The expert was emailed and the user was CCed." : "The expert was emailed.",
+      label: "Expert handoff submitted",
+      detail: metadata.expert_handoff_cc_submitted
+        ? "The mail server accepted the expert email and your copy. Inbox delivery is not confirmed."
+        : "The mail server accepted the expert email. Inbox delivery is not confirmed.",
       icon: FiCheckCircle,
     };
   }
 
-  if (metadata.expert_handoff_simulated === true || text.includes("no real email was sent")) {
+  if (status === "simulated" || (!status && (metadata.expert_handoff_simulated === true || text.includes("no real email was sent")))) {
     return {
       tone: "info",
       label: "Expert handoff simulated",
@@ -84,8 +101,9 @@ const getExpertHandoffStatus = (message, content) => {
   }
 
   if (
-    metadata.expert_handoff_pending_confirmation === true ||
-    text.includes("do you want me to send it")
+    status === "pending_confirmation" ||
+    (!status && (metadata.expert_handoff_pending_confirmation === true ||
+      text.includes("do you want me to send it")))
   ) {
     return {
       tone: "pending",
