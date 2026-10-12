@@ -32,7 +32,7 @@ export const STATUS = {
 
 // Error messages
 export const ERROR_MESSAGES = {
-  NETWORK_ERROR: "Network error occurred. Please try again later.",
-  SOCKET_DISCONNECTED: "Socket disconnected. Reconnecting...",
-  MESSAGE_SEND_FAILED: "Failed to send message. Please retry.",
+  NETWORK_ERROR: "Ett nätverksfel uppstod. Försök igen om en stund.",
+  SOCKET_DISCONNECTED: "Anslutningen bröts. Återansluter…",
+  MESSAGE_SEND_FAILED: "Meddelandet kunde inte skickas. Försök igen.",
 };

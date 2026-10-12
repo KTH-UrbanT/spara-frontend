@@ -18,7 +18,7 @@ const convertTimestamp = (timestamp) => {
     date = new Date(timestamp);
   }
 
-  return Number.isNaN(date.getTime()) ? "" : date.toLocaleString();
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleString("sv-SE");
 };
 
 const Dialogue = ({ messages, loadingStatus }) => {
@@ -88,7 +88,7 @@ const Dialogue = ({ messages, loadingStatus }) => {
         >
           <div className="space-y-4 text-center">
             <WelcomeInstructions compact />
-            <p className="text-sm dark:text-slate-300">Start the conversation below.</p>
+            <p className="text-sm dark:text-slate-300">Starta samtalet nedan.</p>
           </div>
         </div>
       )}

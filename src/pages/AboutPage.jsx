@@ -8,21 +8,21 @@ function AboutPage() {
       <main className="mx-auto flex h-full w-full max-w-3xl flex-col gap-4 overflow-y-auto px-2 py-6 text-base-content">
         <WelcomeInstructions />
         <section className="rounded-lg border border-base-300 bg-base-100/80 p-5 shadow-sm">
-          <h2 className="text-xl font-semibold">What SPARA Can Help With</h2>
+          <h2 className="text-xl font-semibold">Det här kan SPARA hjälpa dig med</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-base-content/75">
-            <li>Explain building energy concepts and common efficiency measures.</li>
-            <li>Use available building context when you provide a BRF name or address.</li>
-            <li>Prepare a concise handoff to an EKR expert after you confirm that it should be sent.</li>
+            <li>Förklara energibegrepp och vanliga åtgärder för byggnader.</li>
+            <li>Hämta tillgängliga byggnadsuppgifter utifrån föreningens namn, adress eller byggnadsid.</li>
+            <li>Förbereda en sammanfattning till en energi- och klimatrådgivare och skicka den efter ditt godkännande när e-postfunktionen är tillgänglig.</li>
           </ul>
         </section>
         <section className="rounded-lg border border-base-300 bg-base-100/80 p-5 shadow-sm">
-          <h2 className="text-xl font-semibold">Limits</h2>
+          <h2 className="text-xl font-semibold">Begränsningar</h2>
           <p className="mt-3 text-sm leading-6 text-base-content/75">
-            SPARA answers are generated from available data and retrieved
-            guidance. The information can be incomplete, outdated, or
-            mismatched to a building record, especially when a property has
-            multiple addresses. Confirm critical details with a qualified
-            professional before making decisions.
+            SPARA använder tillgängliga byggnadsuppgifter och hämtat kunskapsunderlag.
+            Uppgifterna kan vara ofullständiga eller äldre än byggnadens nuvarande
+            förhållanden. En adress kan finnas i flera kommuner eller tillhöra flera
+            byggnadsid. Kontrollera byggnadsid, period och viktiga uppgifter med en
+            sakkunnig innan du fattar beslut.
           </p>
         </section>
       </main>

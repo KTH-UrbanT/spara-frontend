@@ -25,7 +25,7 @@ const Root = () => {
   }, [location.pathname, params.chatId, setSelectedSession]);
 
   // Hide sidebar on focused pages
-  const hideSidebar = ["/login", "/register", "/expertreportgenerator"].includes(
+  const hideSidebar = ["/login", "/register"].includes(
     location.pathname
   );
 

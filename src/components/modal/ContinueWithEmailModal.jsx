@@ -19,7 +19,7 @@ const ContinueWithEmailModal = ({ isOpen, onClose }) => {
     event.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) {
-      showToast("Email is required.", "error");
+      showToast("Ange din e-postadress.", "error");
       emailInputRef.current?.focus();
       return;
     }
@@ -39,18 +39,26 @@ const ContinueWithEmailModal = ({ isOpen, onClose }) => {
   return (
     <dialog className="modal" open={isOpen} onClose={onClose}>
       <div className="modal-box max-w-sm">
-        <h2 className="font-bold text-lg text-center">Continue with Email</h2>
+        <h2 className="font-bold text-lg text-center">Fortsätt med e-post</h2>
         <form onSubmit={handleSubmit} className="space-y-3 pt-4">
           <div className="form-control">
-            <label className="label py-1">
-              <span className="label-text text-sm">Email</span>
+            <label htmlFor="continue-email" className="label py-1">
+              <span className="label-text text-sm">E-post</span>
             </label>
             <input
               ref={emailInputRef}
+              id="continue-email"
               type="email"
+              aria-label="E-postadress"
               className="input input-bordered w-full"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                event.target.setCustomValidity("");
+                setEmail(event.target.value);
+              }}
+              onInvalid={(event) => event.target.setCustomValidity(
+                event.target.validity.valueMissing ? "Ange din e-postadress." : "Ange en giltig e-postadress."
+              )}
               required
               autoFocus
             />
@@ -58,13 +66,13 @@ const ContinueWithEmailModal = ({ isOpen, onClose }) => {
 
           <div className="modal-action gap-2 mt-4 flex justify-end">
             <Button
-              text={isCreatingUser ? "Continuing..." : "Continue"}
+              text={isCreatingUser ? "Fortsätter..." : "Fortsätt"}
               type="submit"
               color="btn-primary"
               disabled={isCreatingUser}
             />
             <Button
-              text="Close"
+              text="Stäng"
               onClick={onClose}
               color="btn-neutral"
               type="button"
@@ -74,7 +82,7 @@ const ContinueWithEmailModal = ({ isOpen, onClose }) => {
         </form>
       </div>
       <form method="dialog" className="modal-backdrop">
-        <button type="button" onClick={onClose}>close</button>
+        <button type="button" onClick={onClose}>stäng</button>
       </form>
     </dialog>
   );

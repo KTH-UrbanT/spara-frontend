@@ -3,7 +3,6 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   HiDownload,
   HiMenu,
-  HiOutlineDocumentReport,
   HiOutlineInformationCircle,
   HiOutlineUserCircle,
   HiLogout,
@@ -30,8 +29,8 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
     try {
       await downloadEvaluationRecords({ format: "csv" });
     } catch (error) {
-      console.error("Failed to export evaluation records:", error);
-      showToast("Failed to export evaluation records", "error");
+      console.error("Utvärderingen kunde inte exporteras:", error);
+      showToast("Utvärderingen kunde inte exporteras", "error");
     }
   };
 
@@ -45,6 +44,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             color={"btn-neutral"}
             size={"btn-sm"}
             onClick={toggleSidebar}
+            aria-label="Öppna menyn"
           />
         </div>
       )}
@@ -62,6 +62,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             color={"btn-neutral"}
             size={"btn-sm"}
             onClick={toggleSidebar}
+            aria-label="Stäng menyn"
           />
         </div>
 
@@ -74,17 +75,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                 onClick={() => setIsCollapsed(true)}
                 className="block px-2 py-1 hover:bg-gray-700 rounded"
               >
-                New Chat
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/expertreportgenerator"
-                onClick={() => setIsCollapsed(true)}
-                className="flex items-center gap-2 rounded px-2 py-1 hover:bg-gray-700"
-              >
-                <HiOutlineDocumentReport aria-hidden="true" size={18} />
-                Expert Report Generator
+                Nytt samtal
               </NavLink>
             </li>
             <li>
@@ -94,13 +85,13 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                 className="flex items-center gap-2 rounded px-2 py-1 hover:bg-gray-700"
               >
                 <HiOutlineInformationCircle aria-hidden="true" size={18} />
-                About
+                Om SPARA
               </NavLink>
             </li>
             {sessions?.length > 0 && (
               <>
                 <li className="text-gray-400 text-xs uppercase mt-4">
-                  Sessions
+                  Samtal
                 </li>
                 {sessions
                   .sort((a, b) => b.last_accessed - a.last_accessed) // Sort by last_accessed descending
@@ -111,7 +102,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                         onClick={() => setIsCollapsed(true)}
                         className="block px-2 py-1 hover:bg-gray-700 rounded"
                       >
-                        {`Chat ${session.session_id}`}
+                        {`Samtal ${session.session_id}`}
                       </NavLink>
                     </li>
                   ))}
@@ -130,7 +121,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
               icon={<HiOutlineUserCircle />}
               text={
                 <span className="flex w-full items-center justify-between">
-                  <span className="truncate">{user?.username || "Account"}</span>
+                  <span className="truncate">{user?.username || "Konto"}</span>
                 </span>
               }
               size="btn-sm w-full justify-start gap-3"
@@ -143,13 +134,13 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
               tabIndex={0}
               className="dropdown-content menu bg-base-200 text-base-content rounded-box z-50 w-60 p-2 shadow-md border border-base-300"
             >
-              <li className="menu-title px-2 py-1 text-s text-base-content/60">Account</li>
+              <li className="menu-title px-2 py-1 text-s text-base-content/60">Konto</li>
               {
                 !!user?.temporary_user && user.temporary_user ? (
                   <>
                     <li className="p-1">
                       <Button
-                        text="Register"
+                        text="Registrera dig"
                         icon={<HiOutlineUserAdd />}
                         onClick={() => navigate('/register')}
                         color="bg-transparent hover:bg-base-300"
@@ -160,7 +151,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                     </li>
                     <li className="p-1">
                       <Button
-                        text="Login"
+                        text="Logga in"
                         icon={<HiOutlineLogin />}
                         onClick={() => navigate('/login')}
                         color="bg-transparent hover:bg-base-300"
@@ -174,7 +165,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                   <>
                     <li className="p-1">
                       <Button
-                        text="Export evaluation CSV"
+                        text="Exportera utvärdering (CSV)"
                         icon={<HiDownload />}
                         onClick={handleDownloadEvaluation}
                         color="bg-transparent hover:bg-base-300"
@@ -185,7 +176,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                     </li>
                     <li className="p-1">
                       <Button
-                        text="Logout"
+                        text="Logga ut"
                         icon={<HiLogout />}
                         onClick={() => setLogoutModalOpen(true)}
                         color="bg-transparent hover:bg-base-300"

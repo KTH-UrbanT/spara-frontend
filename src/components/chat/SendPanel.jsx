@@ -4,12 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/authContext";
 import { useSocket } from "../../context/socketContext";
 import Button from "../Button";
+import { localizeServiceError } from "../../services/api";
 
 const SendPanel = () => {
   const { handleSendMessage, handleSendFirstMessage } = useSocket();
   const { selectedSession, sessions, showToast, user } = useAuth(); // Get the selected session from the context
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
   const textareaRef = useRef(null);
   const navigate = useNavigate();
   const selectedSessionRecord = Array.isArray(sessions)
@@ -20,41 +22,42 @@ const SendPanel = () => {
 
   const sendMessage = async () => {
     // Check if the message is not empty
-    if (isSubmitting) {
+    if (submittingRef.current) {
       return;
     }
 
     const text = message;
     if (text.trim()) {
       if (!user?.email) {
-        showToast("Please log in or register to start a chat.", "error");
+        showToast("Logga in eller registrera dig för att starta en chatt.", "error");
         navigate("/login");
         return;
       }
 
-      setIsSubmitting(true);
-      let sent = false;
-      if (selectedSession === null) {
-        sent = handleSendFirstMessage(text, user); // Handle sending the first message when no session is selected
-      } else if (isCurrentSessionInactive) {
-        showToast("Reactivate this session before sending a message.", "warning");
-        setIsSubmitting(false);
+      if (isCurrentSessionInactive) {
+        showToast("Återaktivera samtalet innan du skickar ett meddelande.", "warning");
         return;
-      } else {
-        sent = handleSendMessage(text); // Send the message in the current session
       }
-
-      if (sent) {
-        setMessage(""); // Clear the input after sending
-
-        // Reset the height of the textarea
-        if (textareaRef.current) {
-          textareaRef.current.style.height = "3rem"; // Equivalent to h-12 in Tailwind
+      submittingRef.current = true;
+      setIsSubmitting(true);
+      try {
+        const sent = selectedSession === null
+          ? await handleSendFirstMessage(text, user)
+          : await handleSendMessage(text);
+        if (sent) {
+          setMessage("");
+          if (textareaRef.current) {
+            textareaRef.current.style.height = "3rem";
+          }
         }
+      } catch (error) {
+        showToast(localizeServiceError(error?.response?.data?.detail || error.message, "Meddelandet kunde inte skickas."), "error");
+      } finally {
+        submittingRef.current = false;
+        setIsSubmitting(false);
       }
-      setIsSubmitting(false);
     } else {
-      showToast("Message cannot be empty!", "error");
+      showToast("Skriv ett meddelande först.", "error");
     }
   };
 
@@ -91,7 +94,8 @@ const SendPanel = () => {
       <textarea
         ref={textareaRef}
         id="chatTextarea"
-        placeholder="Type a message..."
+        placeholder="Skriv ett meddelande..."
+        aria-label="Skriv ett meddelande"
         value={message}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
@@ -101,6 +105,8 @@ const SendPanel = () => {
       <Button
         icon={<HiPaperAirplane style={{ transform: "rotate(90deg)" }} />}
         type="submit"
+        title="Skicka meddelande"
+        aria-label="Skicka meddelande"
         disabled={isCurrentSessionInactive || isSubmitting}
       />
     </form>

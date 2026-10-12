@@ -12,7 +12,7 @@ const LogoutModal = ({ isOpen, onClose }) => {
         logout();
         onClose();
         navigate('/');
-        showToast("Logged out successfully.", "success");
+        showToast("Du har loggats ut.", "success");
     };
 
     if (!isOpen) return null;
@@ -20,15 +20,15 @@ const LogoutModal = ({ isOpen, onClose }) => {
     return (
         <dialog id="logout_modal" className="modal" open={isOpen} onClose={onClose}>
             <div className="modal-box">
-                <h2 className="font-bold text-lg">Log out</h2>
-                <p className="py-4">Are you sure you want to log out?</p>
+                <h2 className="font-bold text-lg">Logga ut</h2>
+                <p className="py-4">Vill du logga ut?</p>
                 <div className="modal-action gap-2 mt-4 flex justify-end">
-                    <Button text={"Logout"} onClick={handleLogout} />
-                    <Button text={"Close"} onClick={onClose} color={"btn-neutral"} />
+                    <Button text={"Logga ut"} onClick={handleLogout} />
+                    <Button text={"Stäng"} onClick={onClose} color={"btn-neutral"} />
                 </div>
             </div>
             <form method="dialog" className="modal-backdrop">
-                <button>close</button>
+                <button>stäng</button>
             </form>
         </dialog>
     );

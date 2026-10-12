@@ -15,6 +15,9 @@
 
     ARG VITE_MS_SOCKETIO_URL
     ENV VITE_MS_SOCKETIO_URL=$VITE_MS_SOCKETIO_URL
+
+    ARG VITE_DEPLOYMENT_TAG
+    ARG VITE_BRANCH
     
     # Copy and install dependencies
     COPY package.json package-lock.json ./
@@ -22,7 +25,14 @@
     
     # Copy source and build the app
     COPY . .
-    RUN npm run build
+    RUN if [ -n "${VITE_DEPLOYMENT_TAG:-}" ]; then \
+            printf "VITE_DEPLOYMENT_TAG=%s\n" "$VITE_DEPLOYMENT_TAG" >> .env.production.local; \
+        fi \
+        && if [ -n "${VITE_BRANCH:-}" ]; then \
+            printf "VITE_BRANCH=%s\n" "$VITE_BRANCH" >> .env.production.local; \
+        fi \
+        && unset VITE_DEPLOYMENT_TAG VITE_BRANCH \
+        && npm run build
     
     # ---------- Stage 2: Serve with Nginx ----------
     FROM nginx:alpine

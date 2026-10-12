@@ -14,20 +14,20 @@ function WelcomeInstructions({ compact = false }) {
         </div>
         <div className="min-w-0 flex-1">
           <h1 className={`${compact ? "text-lg" : "text-2xl"} font-semibold`}>
-            Welcome to SPARA
+            Välkommen till SPARA
           </h1>
           <p className="mt-2 text-sm leading-6 text-base-content/70">
-            Ask about energy use, building data, improvement measures, or how to
-            prepare information for an advisor. For building-specific advice,
-            include a BRF name or street address.
+            Fråga om energianvändning, byggnadsuppgifter, åtgärder eller underlag
+            till en rådgivare. För uppgifter om en viss byggnad kan du ange
+            föreningens namn, gatuadress och kommun eller byggnadsid.
           </p>
           <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
             <FiAlertCircle aria-hidden="true" className="mt-0.5 shrink-0" size={15} />
             <p>
-              SPARA can make mistakes and should not replace a professional
-              energy advisor. Review important answers before acting on them.{" "}
+              SPARA kan göra fel. Kontrollera viktiga uppgifter med en
+              energi- och klimatrådgivare innan du fattar beslut.{" "}
               <Link className="font-medium underline underline-offset-2" to="/about">
-                About SPARA
+                Om SPARA
               </Link>
             </p>
           </div>

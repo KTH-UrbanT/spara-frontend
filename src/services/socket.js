@@ -1,4 +1,5 @@
 import { io } from "socket.io-client";
+import { localizeServiceError } from "./api";
 import {
   SOCKET_SERVER_URL,
   MAX_RECONNECT_ATTEMPTS,
@@ -63,9 +64,53 @@ export const sendMessage = (message, sessionId, sessionIdInt) => {
 
 export const createNewSession = (message, userId, email) => {
   if (!message || !userId || !email) {
-    return false;
+    return Promise.reject(new Error("Ett meddelande och en inloggad användare krävs."));
   }
-  return emitEvent(EVENTS.CREATE_NEW_SESSION, message, userId, email);
+  const requestId = crypto.randomUUID();
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      clearTimeout(timer);
+      socket.off(EVENTS.SESSION_CREATED, handleCreated);
+      socket.off(EVENTS.ERROR_MESSAGE, handleError);
+      socket.off("connect", handleConnect);
+      socket.off("connect_error", handleConnectionError);
+    };
+    const handleCreated = (session) => {
+      if (session?.request_id !== requestId) return;
+      cleanup();
+      if (!session.message_accepted || !session.session_id || !session.session_id_int) {
+        reject(new Error("Servern bekräftade inte att ditt första meddelande sparades."));
+        return;
+      }
+      resolve(session);
+    };
+    const handleError = (payload) => {
+      if (payload?.request_id !== requestId) return;
+      cleanup();
+      reject(new Error(localizeServiceError(payload.error, "Samtalet kunde inte skapas.")));
+    };
+    const handleConnectionError = () => {
+      cleanup();
+      reject(new Error("Det gick inte att ansluta till SPARA. Meddelandet finns kvar i skrivfältet."));
+    };
+    const handleConnect = () => {
+      socket.off("connect", handleConnect);
+      socket.emit(EVENTS.CREATE_NEW_SESSION, message, userId, email, requestId);
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("SPARA har inte bekräftat meddelandet. Kontrollera dina samtal innan du skickar det igen."));
+    }, 20000);
+    socket.on(EVENTS.SESSION_CREATED, handleCreated);
+    socket.on(EVENTS.ERROR_MESSAGE, handleError);
+    socket.on("connect_error", handleConnectionError);
+    if (socket.connected) {
+      handleConnect();
+    } else {
+      socket.once("connect", handleConnect);
+      socket.connect();
+    }
+  });
 };
 
 export const establishSession = (sessionId, sessionIdInt, userId, email) => {

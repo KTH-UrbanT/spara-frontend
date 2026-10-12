@@ -1,8 +1,14 @@
 import { IoMdSettings } from "react-icons/io";
-import { IoMdClose } from "react-icons/io";
 import Button from "../Button";
 import { useSettings } from "../../context/settingsContext";
 import { useRef } from "react";
+
+const themeLabels = {
+    light: "Ljust",
+    winter: "Vinter",
+    dark: "Mörkt",
+    night: "Natt",
+};
 
 const SettingsModal = () => {
     const {
@@ -39,6 +45,7 @@ const SettingsModal = () => {
                     color={"btn-neutral"}
                     size={"btn-sm"}
                     onClick={handleOpenClick}
+                    aria-label="Öppna inställningar"
                 />
             </div>
 
@@ -48,18 +55,19 @@ const SettingsModal = () => {
                 className="modal"
                 ref={modalRef}
                 onKeyDown={handleKeyDown}
+                aria-labelledby="settings-heading"
             >
                 <div className="modal-box">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-4">
-                        <h1 className="text-xl font-bold">Settings</h1>
+                        <h1 id="settings-heading" className="text-xl font-bold">Inställningar</h1>
                     </div>
 
-                    {/* Settings */}
+                    {/* Inställningar */}
                     <div className="space-y-6">
                         {/* Notification Audio */}
                         <div className="flex justify-between items-center">
-                            <span>Notification audio</span>
+                            <label htmlFor="notification-audio">Aviseringsljud</label>
                             <input
                                 type="checkbox"
                                 id="notification-audio"
@@ -71,8 +79,9 @@ const SettingsModal = () => {
 
                         {/* Theme */}
                         <div className="flex justify-between">
-                            <label className="block mb-2">Theme</label>
+                            <label htmlFor="settings-theme" className="block mb-2">Tema</label>
                             <select
+                                id="settings-theme"
                                 className="select select-bordered"
                                 value={theme}
                                 onChange={(e) => setTheme(e.target.value)}
@@ -82,7 +91,7 @@ const SettingsModal = () => {
                                         key={key}
                                         value={theme}
                                     >
-                                        {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                                        {themeLabels[theme] || "Tema"}
                                     </option>
                                 ))}
                             </select>
@@ -91,8 +100,8 @@ const SettingsModal = () => {
                         {/* App Info */}
                         <div className="border-t pt-4 mt-4">
                             <div className="text-sm text-gray-500 space-y-1">
-                                <p>Deployment: {import.meta.env.VITE_DEPLOYMENT_TAG || 'N/A'}</p>
-                                <p>Branch: {import.meta.env.VITE_BRANCH || 'N/A'}</p>
+                                <p>Driftsättning: {import.meta.env.VITE_DEPLOYMENT_TAG || 'Ej tillgängligt'}</p>
+                                <p>Gren: {import.meta.env.VITE_BRANCH || 'Ej tillgängligt'}</p>
                             </div>
                         </div>
                     </div>
@@ -100,7 +109,7 @@ const SettingsModal = () => {
                     {/* Close Button */}
                     <div className="modal-action">
                         <Button
-                            text="Close"
+                            text="Stäng"
                             onClick={handleCloseClick}
                             color="btn-neutral"
                         />
@@ -108,7 +117,7 @@ const SettingsModal = () => {
                 </div>
 
                 <form method="dialog" className="modal-backdrop">
-                    <button>close</button>
+                    <button>stäng</button>
                 </form>
             </dialog>
         </>

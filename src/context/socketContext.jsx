@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { router } from "../routes/router";
 import socket, {
   sendMessage,
@@ -8,16 +8,14 @@ import socket, {
   listenForAnswers,
   listenForProcessingStatus,
   listenForSessionUpdates,
-  listenForSessionCreated,
   listenForErrors,
   removeMessageListener,
   removeAnswerListener,
   removeProcessingStatusListener,
   removeSessionUpdatedListener,
-  removeSessionCreatedListener,
   removeErrorListener,
 } from "../services/socket";
-import { getMessagesBySession, getSessionsByUser } from "../services/api";
+import { getMessagesBySession, localizeServiceError } from "../services/api";
 import { useAuth } from "./authContext";
 
 const SocketContext = createContext();
@@ -67,6 +65,9 @@ const mergeMessagesWithExistingRatings = (currentMessages, incomingMessages) => 
 export const SocketProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
   const [isConnected, setIsConnected] = useState(socket.connected);
+  const sessionMessages = useRef(new Map());
+  const createdSessions = useRef(new Map());
+  const firstMessagePending = useRef(false);
 
   const {
     selectedSession,
@@ -112,7 +113,21 @@ export const SocketProvider = ({ children }) => {
   const sessionList = Array.isArray(sessions) ? sessions : [];
   const selectedSessionInt =
     sessionList.find((session) => session.session_token === selectedSession)?.session_id ??
+    createdSessions.current.get(selectedSession)?.session_id_int ??
     null;
+
+  useEffect(() => {
+    sessionMessages.current.clear();
+    createdSessions.current.clear();
+    // Capture updates even while a newly created chat is being selected.
+    const cacheSessionUpdate = (session) => {
+      if (session?.session_id && Array.isArray(session.messages)) {
+        sessionMessages.current.set(session.session_id, session.messages);
+      }
+    };
+    listenForSessionUpdates(cacheSessionUpdate);
+    return () => removeSessionUpdatedListener(cacheSessionUpdate);
+  }, [user?.user_id]);
 
   useEffect(() => {
     if (selectedSession !== null) {
@@ -124,7 +139,12 @@ export const SocketProvider = ({ children }) => {
         `Connecting to socket for chat: ${selectedSession}`,
       );
       let cancelled = false;
-      setMessages([]);
+      let receivedLiveUpdate = false;
+      const initialMessages = sessionMessages.current.get(selectedSession) || [];
+      setMessages(initialMessages);
+      if (initialMessages.at(-1)?.role === "assistant") {
+        setSessionIsLoading(selectedSession, false);
+      }
 
       // Update session ID and connect
       const chatAuth = {
@@ -145,6 +165,8 @@ export const SocketProvider = ({ children }) => {
           return;
         }
 
+        receivedLiveUpdate = true;
+
         setMessages((currentMessages) =>
           mergeMessagesWithExistingRatings(currentMessages, session.messages)
         );
@@ -163,6 +185,7 @@ export const SocketProvider = ({ children }) => {
       };
 
       const handleAnswerReceive = (answer) => {
+        if (answer?.session_id && answer.session_id !== selectedSession) return;
         console.log("Received answer:", answer);
         setSessionIsLoading(selectedSession, false);
       };
@@ -175,16 +198,25 @@ export const SocketProvider = ({ children }) => {
         setSessionProcessingStatus(selectedSession, statusPayload);
       };
       const handleErrorMessage = (payload) => {
-        const detail = payload?.error || payload?.message || "SPARA could not process that message.";
+        if (payload?.session_id && payload.session_id !== selectedSession) return;
+        const detail = payload?.error || payload?.message;
         console.error("Socket error:", payload);
         setSessionIsLoading(selectedSession, false);
-        showToast(detail, "error");
+        showToast(localizeServiceError(detail, "SPARA kunde inte behandla meddelandet. Försök igen."), "error");
       };
 
       getMessagesBySession(selectedSessionInt)
         .then((savedMessages) => {
-          if (!cancelled) {
-            setMessages(savedMessages);
+          if (!cancelled && !receivedLiveUpdate) {
+            setMessages((currentMessages) => {
+              if (!Array.isArray(savedMessages) || savedMessages.length < currentMessages.length) {
+                return currentMessages;
+              }
+              return mergeMessagesWithExistingRatings(currentMessages, savedMessages);
+            });
+            if (savedMessages?.at(-1)?.role === "assistant") {
+              setSessionIsLoading(selectedSession, false);
+            }
           }
         })
         .catch((error) => {
@@ -261,76 +293,65 @@ export const SocketProvider = ({ children }) => {
     );
   };
 
-  const handleSendFirstMessage = (message, identityUser = user) => {
+  const handleSendFirstMessage = async (message, identityUser = user) => {
     if (!identityUser?.user_id || !identityUser?.email) {
-      showToast("Email is required to start a chat.", "error");
+      showToast("Ange e-post för att starta ett samtal.", "error");
       return false;
     }
-
-    const handleSessionCreated = async (session) => {
-      try {
-        const result = await getSessionsByUser(identityUser.user_id);
-        setSessions(result || []);
-      } catch (error) {
-        console.error("Failed to fetch sessions:", error);
-        showToast("Failed to get sessions of the user!", "error");
+    if (firstMessagePending.current) return false;
+    firstMessagePending.current = true;
+    try {
+      socket.auth = {
+        session_id: null,
+        user_id: identityUser.user_id,
+        email: identityUser.email,
+        session_id_int: null,
+      };
+      const session = await createNewSession(message, identityUser.user_id, identityUser.email);
+      createdSessions.current.set(session.session_id, session);
+      if (!sessionMessages.current.has(session.session_id)) {
+        sessionMessages.current.set(session.session_id, session.messages || []);
       }
+      const createdRecord = {
+        session_token: session.session_id,
+        session_id: session.session_id_int,
+        user_id: identityUser.user_id,
+        is_active: true,
+        last_accessed: new Date().toISOString(),
+      };
+      setSessions((currentSessions) => [
+        createdRecord,
+        ...(Array.isArray(currentSessions) ? currentSessions : []).filter(
+          (existing) => existing.session_token !== session.session_id
+        ),
+      ]);
       localStorage.setItem("session_id_int", JSON.stringify(session.session_id_int));
-
-      removeSessionCreatedListener(handleSessionCreated);
-      // socket.auth = {
-      //   ...socket.auth,
-      //   session_id: session.session_id,
-      //   session_id_int: session.session_id_int
-      // };
-
-      router.navigate(`/chat/${session.session_id}`);
+      setSessionIsLoading(
+        session.session_id,
+        sessionMessages.current.get(session.session_id)?.at(-1)?.role !== "assistant"
+      );
       setSelectedSession(session.session_id);
-
-      // Send the first message after session creation
-      try {
-        setSessionIsLoading(session.session_id, true);
-        const sent = sendMessage(message, session.session_id, session.session_id_int);
-        if (!sent) {
-          throw new Error("The new chat session was created, but the message could not be sent.");
-        }
-      } catch (error) {
-        console.error("Failed to send message:", error);
-        showToast("Failed to send message!", "error");
-        setSessionIsLoading(session.session_id, false);
-
-      }
-    };
-    listenForSessionCreated(handleSessionCreated);
-
-    socket.auth = {
-      session_id: null,
-      user_id: identityUser.user_id,
-      email: identityUser.email,
-      session_id_int: null,
-    };
-    socket.connect();
-    console.log("Temporary socket connected for new session creation.");
-
-    const queued = createNewSession(message, identityUser.user_id, identityUser.email);
-    if (!queued) {
-      removeSessionCreatedListener(handleSessionCreated);
-      showToast("Failed to create chat session.", "error");
+      router.navigate(`/chat/${encodeURIComponent(session.session_id)}`);
+      return true;
+    } catch (error) {
+      console.error("Failed to start chat:", error);
+      showToast(localizeServiceError(error.message, "Samtalet kunde inte skapas. Försök igen."), "error");
       return false;
+    } finally {
+      firstMessagePending.current = false;
     }
-    return true;
-  }
+  };
 
 
   const handleSendMessage = (message) => {
     try {
       if (!selectedSessionInt) {
-        showToast("The chat session is still loading. Please try again in a moment.", "error");
+        showToast("Samtalet laddas fortfarande. Försök igen om en stund.", "error");
         return false;
       }
 
       if (!user?.email) {
-        showToast("Email is required to send a message.", "error");
+        showToast("Ange e-post för att skicka ett meddelande.", "error");
         return false;
       }
 
@@ -338,13 +359,13 @@ export const SocketProvider = ({ children }) => {
       const sent = sendMessage(message, selectedSession, selectedSessionInt);
       if (!sent) {
         setSessionIsLoading(selectedSession, false);
-        showToast("Failed to send message. Please retry.", "error");
+        showToast("Meddelandet kunde inte skickas. Försök igen.", "error");
         return false;
       }
       return true;
     } catch (error) {
       console.error("Failed to send message:", error);
-      showToast("Failed to send message!", "error");
+      showToast("Meddelandet kunde inte skickas!", "error");
       setSessionIsLoading(selectedSession, false);
       return false;
     }

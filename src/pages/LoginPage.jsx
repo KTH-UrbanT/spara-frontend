@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import ContinueWithEmailModal from "../components/modal/ContinueWithEmailModal";
 import { useAuth } from "../context/authContext";
-import { login } from "../services/api";
+import { login, localizeServiceError } from "../services/api";
 
 const LoginPage = () => {
     const { showToast, setUser } = useAuth();
@@ -29,11 +29,11 @@ const LoginPage = () => {
                 temporary_user: response.temporary_user
             };
             setUser(userData);
-            showToast("Login successful!", "success");
+            showToast("Du är inloggad!", "success");
             navigate("/");
         } catch (err) {
             console.error(err.message || "Something went wrong. Please try again.");
-            showToast("Invalid email or password!", "error");
+            showToast(localizeServiceError(err.response?.data?.detail || err.message, "Inloggningen misslyckades. Försök igen."), "error");
         }
     };
 
@@ -42,35 +42,47 @@ const LoginPage = () => {
             <div className="card w-full max-w-sm bg-base-100 shadow-xl">
                 <div className="card-body p-6">
                     <h2 className="card-title text-xl font-bold justify-center mb-4">
-                        Login
+                        Logga in
                     </h2>
 
                     <form onSubmit={handleSubmit} className="space-y-3">
                         <div className="form-control">
-                            <label className="label py-1">
-                                <span className="label-text text-sm">Email</span>
+                            <label htmlFor="email" className="label py-1">
+                                <span className="label-text text-sm">E-post</span>
                             </label>
                             <input
                                 id="email"
                                 type="email"
+                                aria-label="E-postadress"
                                 className="input input-bordered w-full"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(e) => {
+                                    e.target.setCustomValidity("");
+                                    setEmail(e.target.value);
+                                }}
+                                onInvalid={(e) => e.target.setCustomValidity(
+                                    e.target.validity.valueMissing ? "Ange din e-postadress." : "Ange en giltig e-postadress."
+                                )}
                                 required
                                 autoFocus
                             />
                         </div>
 
                         <div className="form-control">
-                            <label className="label py-1">
-                                <span className="label-text text-sm">Password</span>
+                            <label htmlFor="password" className="label py-1">
+                                <span className="label-text text-sm">Lösenord</span>
                             </label>
                             <input
                                 id="password"
                                 type="password"
+                                aria-label="Lösenord"
                                 className="input input-bordered w-full"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={(e) => {
+                                    e.target.setCustomValidity("");
+                                    setPassword(e.target.value);
+                                }}
+                                onInvalid={(e) => e.target.setCustomValidity("Ange ditt lösenord.")}
                                 required
                             />
                         </div>
@@ -78,17 +90,17 @@ const LoginPage = () => {
                         <div className="form-control mt-4">
                             <Button
                                 type="submit"
-                                text="Login"
+                                text="Logga in"
                                 size="w-full"
                                 color="btn-primary"
                             />
                         </div>
                     </form>
 
-                    <div className="divider my-3 text-xs">OR</div>
+                    <div className="divider my-3 text-xs">ELLER</div>
 
                     <Button
-                        text="Continue with Email"
+                        text="Fortsätt med e-post"
                         onClick={() => setEmailModalOpen(true)}
                         size="w-full"
                         color="btn-outline"
@@ -98,8 +110,8 @@ const LoginPage = () => {
                     />
 
                     <div className="text-center mt-3">
-                        <span className="text-sm text-base-content/70">Don't have an account? </span>
-                        <a href="/register" className="link link-primary text-xs">Register</a>
+                        <span className="text-sm text-base-content/70">Har du inget konto? </span>
+                        <a href="/register" className="link link-primary text-xs">Registrera dig</a>
                     </div>
                 </div>
             </div>
