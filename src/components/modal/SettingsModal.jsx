@@ -4,10 +4,10 @@ import { useSettings } from "../../context/settingsContext";
 import { useRef } from "react";
 
 const themeLabels = {
-    light: "Ljust",
-    winter: "Vinter",
-    dark: "Mörkt",
-    night: "Natt",
+    light: "Light",
+    winter: "Winter",
+    dark: "Dark",
+    night: "Night",
 };
 
 const SettingsModal = () => {
@@ -45,7 +45,7 @@ const SettingsModal = () => {
                     color={"btn-neutral"}
                     size={"btn-sm"}
                     onClick={handleOpenClick}
-                    aria-label="Öppna inställningar"
+                    aria-label="Open settings"
                 />
             </div>
 
@@ -60,14 +60,14 @@ const SettingsModal = () => {
                 <div className="modal-box">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-4">
-                        <h1 id="settings-heading" className="text-xl font-bold">Inställningar</h1>
+                        <h1 id="settings-heading" className="text-xl font-bold">Settings</h1>
                     </div>
 
-                    {/* Inställningar */}
+                    {/* Settings */}
                     <div className="space-y-6">
                         {/* Notification Audio */}
                         <div className="flex justify-between items-center">
-                            <label htmlFor="notification-audio">Aviseringsljud</label>
+                            <label htmlFor="notification-audio">Notification sound</label>
                             <input
                                 type="checkbox"
                                 id="notification-audio"
@@ -79,7 +79,7 @@ const SettingsModal = () => {
 
                         {/* Theme */}
                         <div className="flex justify-between">
-                            <label htmlFor="settings-theme" className="block mb-2">Tema</label>
+                            <label htmlFor="settings-theme" className="block mb-2">Theme</label>
                             <select
                                 id="settings-theme"
                                 className="select select-bordered"
@@ -91,7 +91,7 @@ const SettingsModal = () => {
                                         key={key}
                                         value={theme}
                                     >
-                                        {themeLabels[theme] || "Tema"}
+                                        {themeLabels[theme] || "Theme"}
                                     </option>
                                 ))}
                             </select>
@@ -100,8 +100,8 @@ const SettingsModal = () => {
                         {/* App Info */}
                         <div className="border-t pt-4 mt-4">
                             <div className="text-sm text-gray-500 space-y-1">
-                                <p>Driftsättning: {import.meta.env.VITE_DEPLOYMENT_TAG || 'Ej tillgängligt'}</p>
-                                <p>Gren: {import.meta.env.VITE_BRANCH || 'Ej tillgängligt'}</p>
+                                <p>Deployment: {import.meta.env.VITE_DEPLOYMENT_TAG || 'Unavailable'}</p>
+                                <p>Branch: {import.meta.env.VITE_BRANCH || 'Unavailable'}</p>
                             </div>
                         </div>
                     </div>
@@ -109,7 +109,7 @@ const SettingsModal = () => {
                     {/* Close Button */}
                     <div className="modal-action">
                         <Button
-                            text="Stäng"
+                            text="Close"
                             onClick={handleCloseClick}
                             color="btn-neutral"
                         />
@@ -117,7 +117,7 @@ const SettingsModal = () => {
                 </div>
 
                 <form method="dialog" className="modal-backdrop">
-                    <button>stäng</button>
+                    <button>Close</button>
                 </form>
             </dialog>
         </>

@@ -27,21 +27,21 @@ function RatePanel({ message }) {
         message?.message_id ?? null
       );
       updateMessageRating(message, star, result?.rating_id ?? null, result?.message_id ?? null);
-      showToast("Betyget har skickats", "success");
+      showToast("Rating submitted", "success");
       setSelectedRating(star);
     } catch (error) {
       console.error("Failed to send rating:", error);
-      showToast("Betyget kunde inte skickas", "error");
+      showToast("Could not submit the rating", "error");
     }
   };
 
   return (
-    <div style={{ display: "flex", cursor: "pointer" }} role="group" aria-label="Betygsätt svaret">
+    <div style={{ display: "flex", cursor: "pointer" }} role="group" aria-label="Rate the response">
       {[1, 2, 3, 4, 5].map((star) => (
         <div
           key={star}
-          title={`${star} av 5 stjärnor`}
-          aria-label={`${star} av 5 stjärnor`}
+          title={`${star} out of 5 stars`}
+          aria-label={`${star} out of 5 stars`}
           onMouseEnter={() => setHoveredStar(star)}
           onMouseLeave={() => setHoveredStar(0)}
           onClick={() => handleClickedRating(star)}

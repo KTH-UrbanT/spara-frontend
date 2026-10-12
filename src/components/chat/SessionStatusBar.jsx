@@ -49,12 +49,12 @@ function SessionStatusBar() {
       }
 
       showToast(
-        nextIsActive ? "Samtalet har återaktiverats" : "Samtalet har pausats",
+        nextIsActive ? "Conversation reactivated" : "Conversation paused",
         "success"
       );
     } catch (error) {
       console.error("Failed to update session state:", error);
-      showToast("Samtalets status kunde inte uppdateras", "error");
+      showToast("Could not update the conversation status", "error");
     } finally {
       setIsSaving(false);
     }
@@ -66,17 +66,17 @@ function SessionStatusBar() {
     }
 
     const payload = [
-      `Utvärderings-id: ${evaluationId}`,
-      `Samtals-id: ${session.session_id}`,
-      `Samtalsnyckel: ${session.session_token}`,
+      `Evaluation ID: ${evaluationId}`,
+      `Conversation ID: ${session.session_id}`,
+      `Conversation key: ${session.session_token}`,
     ].join("\n");
 
     try {
       await navigator.clipboard.writeText(payload);
-      showToast("Utvärderings-id kopierat", "success");
+      showToast("Evaluation ID copied", "success");
     } catch (error) {
       console.error("Failed to copy evaluation ID:", error);
-      showToast("Utvärderings-id kunde inte kopieras", "error");
+      showToast("Could not copy the evaluation ID", "error");
     }
   };
 
@@ -91,7 +91,7 @@ function SessionStatusBar() {
         aria-hidden="true"
       />
       <div className="min-w-0 flex-1">
-        <div className="font-medium">{isActive ? "Samtalet är aktivt" : "Samtalet är pausat"}</div>
+        <div className="font-medium">{isActive ? "Conversation is active" : "Conversation is paused"}</div>
         <div className="truncate text-xs text-base-content/60">
           {evaluationId}
         </div>
@@ -101,8 +101,8 @@ function SessionStatusBar() {
         className="btn btn-ghost btn-sm shrink-0 px-2"
         onClick={handleCopyEvaluationId}
         disabled={!evaluationId}
-        title="Kopiera utvärderings-id"
-        aria-label="Kopiera utvärderings-id"
+        title="Copy evaluation ID"
+        aria-label="Copy evaluation ID"
       >
         <FiCopy aria-hidden="true" size={16} />
       </button>
@@ -113,7 +113,7 @@ function SessionStatusBar() {
         disabled={isSaving}
       >
         <Icon aria-hidden="true" size={16} />
-        {isSaving ? "Sparar" : isActive ? "Pausa" : "Återaktivera"}
+        {isSaving ? "Saving" : isActive ? "Pause" : "Reactivate"}
       </button>
     </div>
   );

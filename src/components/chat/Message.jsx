@@ -57,28 +57,28 @@ const getExpertHandoffStatus = (message, content) => {
   const text = normalizeText(content);
 
   const status = metadata.expert_handoff_status;
-  const swedish = (metadata.expert_handoff_language || metadata.response_language) !== "en";
+
   if (status === "unknown" || status === "sending") {
     return {
-      tone: "pending", label: swedish ? "Överlämningens status är osäker" : "Expert handoff status uncertain",
-      detail: swedish ? "Det är oklart om meddelandet skickades. Kontrollera med rådgivaren innan du försöker igen för att undvika en dubblett." : "Submission could not be confirmed. Check with the advisor before retrying to avoid a duplicate.",
+      tone: "pending", label: "Expert handoff status uncertain",
+      detail: "Submission could not be confirmed. Check with the advisor before retrying to avoid a duplicate.",
       icon: FiAlertTriangle,
     };
   }
   if (status === "disabled" || status === "cancelled") {
     return {
       tone: "info", label: status === "disabled"
-        ? (swedish ? "E-postöverlämning är inte tillgänglig" : "Expert handoff unavailable")
-        : (swedish ? "Överlämningen är avbruten" : "Expert handoff cancelled"),
-      detail: swedish ? "Inget e-postmeddelande har skickats. Du kan kopiera sammanfattningen och själv kontakta en rådgivare." : "No email was submitted. You can copy the summary and contact an advisor yourself.",
+        ? "Expert handoff unavailable"
+        : "Expert handoff cancelled",
+      detail: "No email was submitted. You can copy the summary and contact an advisor yourself.",
       icon: FiSend,
     };
   }
   if (status === "failed" || (!status && (metadata.expert_handoff_error || text.includes("could not send the email")))) {
     return {
       tone: "error",
-      label: swedish ? "Överlämningen misslyckades" : "Expert handoff failed",
-      detail: swedish ? "Meddelandet kunde inte skickas. Du kan kopiera sammanfattningen och själv kontakta en rådgivare." : "Submission failed. Use the copyable summary or review the error before retrying.",
+      label: "Expert handoff failed",
+      detail: "Submission failed. Use the copyable summary or review the error before retrying.",
       icon: FiAlertTriangle,
     };
   }
@@ -86,10 +86,8 @@ const getExpertHandoffStatus = (message, content) => {
   if (status === "submitted" || (!status && metadata.expert_handoff_sent === true)) {
     return {
       tone: "success",
-      label: swedish ? "E-postservern har tagit emot meddelandet" : "Expert handoff submitted",
-      detail: swedish ? (metadata.expert_handoff_cc_submitted
-        ? "E-postservern tog emot meddelandet och din kopia. Leverans till inkorgen är inte bekräftad."
-        : "E-postservern tog emot meddelandet. Leverans till inkorgen är inte bekräftad.") : metadata.expert_handoff_cc_submitted
+      label: "Expert handoff submitted",
+      detail: metadata.expert_handoff_cc_submitted
         ? "The mail server accepted the expert email and your copy. Inbox delivery is not confirmed."
         : "The mail server accepted the expert email. Inbox delivery is not confirmed.",
       icon: FiCheckCircle,
@@ -99,8 +97,8 @@ const getExpertHandoffStatus = (message, content) => {
   if (status === "simulated" || (!status && (metadata.expert_handoff_simulated === true || text.includes("no real email was sent")))) {
     return {
       tone: "info",
-      label: swedish ? "Överlämningen simulerades" : "Expert handoff simulated",
-      detail: swedish ? "Utvärderingsläget är aktivt. Inget e-postmeddelande har skickats." : "Evaluation mode is active, so no email was sent.",
+      label: "Expert handoff simulated",
+      detail: "Evaluation mode is active, so no email was sent.",
       icon: FiSend,
     };
   }
@@ -112,8 +110,8 @@ const getExpertHandoffStatus = (message, content) => {
   ) {
     return {
       tone: "pending",
-      label: swedish ? "Väntar på ditt godkännande" : "Expert handoff pending",
-      detail: swedish ? "Granska mottagare och innehåll. Svara ”Ja, skicka” eller ”Nej, skicka inte” i chatten." : "Review the recipient and content. Reply 'Yes, send it' or 'No, do not send' in the chat.",
+      label: "Expert handoff pending",
+      detail: "Review the recipient and content. Reply 'Yes, send it' or 'No, do not send' in the chat.",
       icon: FiClock,
     };
   }
@@ -130,7 +128,7 @@ const getSourceTitle = (source) => {
     ""
   ).trim();
   if (!value) {
-    return "Källa";
+    return "Source";
   }
 
   const parts = value.split(/[/\\]/).filter(Boolean);
@@ -180,10 +178,10 @@ const getMessageSources = (message) => {
   const recordSources = [];
   if (scope.sources?.generic_sql?.accepted_records > 0 || scope.cached_facts_used) {
     const year = metadata.data_freshness?.energy_declaration_year;
-    recordSources.push({ name: `ODEN – energideklaration${year ? ` (${year})` : " (datum okänt)"}`, filename: "ODEN", source_type: "building_record", link: "", cached: scope.cached_facts_used === true });
+    recordSources.push({ name: `ODEN – energy declaration${year ? ` (${year})` : " (date unknown)"}`, filename: "ODEN", source_type: "building_record", link: "", cached: scope.cached_facts_used === true });
   }
   if (scope.sources?.specialized_sql?.accepted_records > 0) {
-    recordSources.push({ name: "Mätdata för den valda byggnaden – se period och enhet i svaret", filename: "meter-records", source_type: "meter_records", link: "" });
+    recordSources.push({ name: "Meter data for the selected building – see the period and unit in the response", filename: "meter-records", source_type: "meter_records", link: "" });
   }
   const allSources = [...directSources, ...vectorSources, ...recordSources]
     .map(normalizeSource)
@@ -315,10 +313,10 @@ const formatFactValue = (value, suffix = "") => {
     return null;
   }
   if (typeof value === "boolean") {
-    return value ? "Ja" : "Nej";
+    return value ? "Yes" : "No";
   }
   if (typeof value === "number") {
-    return `${new Intl.NumberFormat("sv-SE").format(value)}${suffix}`;
+    return `${new Intl.NumberFormat("en-GB").format(value)}${suffix}`;
   }
   const text = String(value).trim();
   if (!suffix || normalizeText(text).includes(normalizeText(suffix))) {
@@ -328,7 +326,6 @@ const formatFactValue = (value, suffix = "") => {
 };
 
 const buildBuildingContext = (metadata) => {
-  const swedish = metadata?.response_language !== "en";
   if (
     metadata?.needs_clarification === true ||
     metadata?.route === "clarification" ||
@@ -385,17 +382,17 @@ const buildBuildingContext = (metadata) => {
     ...(isPresent(requestedAddress) && normalizeText(requestedAddress) !== normalizeText(address)
       ? [
           {
-            label: swedish ? "Sökt adress (samma byggnadsid)" : "Requested address (same building ID)",
+            label: "Requested address (same building ID)",
             value: requestedAddress,
           },
         ]
       : []),
     {
-      label: swedish ? "Byggår" : "Construction year",
+      label: "Construction year",
       value: (() => { const value = getField(facts, ["construction_year", "building_year", "year_built", "built_year", "byggnadsar", "byggnadsår", "epc_egennybyggar"]); return isPresent(value) ? String(value).replace(/\.0$/, "") : null; })(),
     },
     {
-      label: swedish ? "Uppvärmd area (Atemp)" : "Heated area (Atemp)",
+      label: "Heated area (Atemp)",
       value: formatFactValue(
         getField(facts, [
           "netAreaHeated",
@@ -409,7 +406,7 @@ const buildBuildingContext = (metadata) => {
       ),
     },
     {
-      label: getField(facts, ["declared_energy_class", "epc_egienergiklass", "declaredEnergyClass"]) ? (swedish ? "Deklarerad energiklass" : "Declared energy class") : (swedish ? "Registrerad energiklass" : "Recorded energy class"),
+      label: getField(facts, ["declared_energy_class", "epc_egienergiklass", "declaredEnergyClass"]) ? "Declared energy class" : "Recorded energy class",
       value: formatFactValue(
         getField(facts, [
           "declared_energy_class",
@@ -422,33 +419,33 @@ const buildBuildingContext = (metadata) => {
       ),
     },
     {
-      label: swedish ? "Beräknad energiklass" : "Calculated energy class",
+      label: "Calculated energy class",
       value: formatFactValue(getField(facts, ["calculated_energy_class", "epc_egienergiklass2020_calc", "epc_egienergiklass_calc"])),
     },
     {
-      label: swedish ? "Deklarerad energiprestanda" : "Declared energy performance",
+      label: "Declared energy performance",
       value: formatFactValue(
         getField(facts, [
           "energy_performance",
           "epc_egienergiprestanda",
           "EnergyClassKwhM2",
         ]),
-        " kWh/(m²·år)"
+        " kWh/(m²·year)"
       ),
     },
     {
-      label: swedish ? "Specifik energianvändning" : "Specific energy use",
+      label: "Specific energy use",
       value: formatFactValue(
         getField(facts, [
           "specific_energy_use",
           "epc_egispecifikenergianvandning",
           "epc_egispecifikenergianvandning_calc",
         ]),
-        " kWh/(m²·år)"
+        " kWh/(m²·year)"
       ),
     },
     {
-      label: swedish ? "Primärenergital (viktat mått)" : "Primary energy number (weighted)",
+      label: "Primary energy number (weighted)",
       value: formatFactValue(
         getField(facts, [
           "primary_energy_number",
@@ -458,10 +455,10 @@ const buildBuildingContext = (metadata) => {
           "epc_egiprimarenergital2019",
           "epc_egiprimarenergital",
         ]),
-        " kWh/(m²·år)"
+        " kWh/(m²·year)"
       ),
     },
-    { label: swedish ? "Energideklarationens år" : "Energy declaration year", value: isPresent(metadata?.data_freshness?.energy_declaration_year) ? String(metadata.data_freshness.energy_declaration_year) : null },
+    { label: "Energy declaration year", value: isPresent(metadata?.data_freshness?.energy_declaration_year) ? String(metadata.data_freshness.energy_declaration_year) : null },
   ].filter((item) => isPresent(item.value));
 
   if (!address && !buildingName && details.length === 0) {
@@ -476,7 +473,6 @@ const buildBuildingContext = (metadata) => {
       : null,
     buildingName,
     details,
-    swedish,
     freshness: metadata?.data_freshness,
     cached: metadata?.evidence_scope?.cached_facts_used === true,
   };
@@ -694,19 +690,17 @@ function BuildingContextBlock({ context }) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-xs font-medium text-base-content/55">
-            {context.swedish ? "Identifierad byggnad" : "Building identified"}
+            Building identified
           </div>
           <div className="truncate text-base font-semibold leading-6">
-            {context.address || context.buildingName || (context.swedish ? "Identifierad byggnad" : "Identified building")}
+            {context.address || context.buildingName || "Identified building"}
           </div>
           <div className="break-all text-xs text-base-content/60">
-            {context.swedish ? "Byggnadsid" : "Building ID"}: {context.buildingId}
+            Building ID: {context.buildingId}
           </div>
           {context.requestedAddress && (
             <p className="mt-1 text-xs leading-5 text-base-content/70">
-              {context.swedish
-                ? `Du sökte på ${context.requestedAddress}. För valt byggnadsid anger registret ${context.address}.`
-                : `You searched for ${context.requestedAddress}. The recorded address for the selected building ID is ${context.address}.`}
+              {`You searched for ${context.requestedAddress}. The recorded address for the selected building ID is ${context.address}.`}
             </p>
           )}
           {context.buildingName && context.address && (
@@ -717,7 +711,7 @@ function BuildingContextBlock({ context }) {
           {context.details.length > 0 && (
             <details className="mt-1 text-xs text-base-content/65">
               <summary className="cursor-pointer select-none font-medium text-base-content/70">
-                {context.swedish ? "Byggnadsuppgifter" : "Building details"}
+                Building details
               </summary>
               <div className="mt-2 flex flex-wrap gap-2">
                 {context.details.map((item) => (
@@ -730,9 +724,9 @@ function BuildingContextBlock({ context }) {
                   </span>
                 ))}
               </div>
-              <p className="mt-2">{context.swedish ? "Uppgifter från ODEN och energideklarationen, inte aktuella driftmätningar. Energimåtten har olika definitioner och ska inte jämföras direkt." : "ODEN and energy-declaration records, not current operating measurements. The energy figures use different definitions and should not be compared directly."}</p>
-              {context.cached && <p>{context.swedish ? "Uppgifterna hämtades tidigare i samtalet och har inte uppdaterats i detta svar." : "These records were retrieved earlier in the conversation and were not refreshed for this answer."}</p>}
-              {!context.freshness?.energy_declaration_year && <p>{context.swedish ? "Energideklarationens datum är okänt." : "The declaration date is unknown."}</p>}
+              <p className="mt-2">ODEN and energy-declaration records, not current operating measurements. The energy figures use different definitions and should not be compared directly.</p>
+              {context.cached && <p>These records were retrieved earlier in the conversation and were not refreshed for this answer.</p>}
+              {!context.freshness?.energy_declaration_year && <p>The declaration date is unknown.</p>}
             </details>
           )}
         </div>
@@ -749,7 +743,7 @@ function SourceReferences({ sources, anchorPrefix }) {
   return (
     <div className="mt-5 border-t border-base-300/80 pt-3">
       <div className="mb-2 text-[0.7rem] font-semibold uppercase tracking-wide text-base-content/50">
-        Källor som hämtats för svaret
+        Sources retrieved for this response
       </div>
       <ol className="list-none space-y-2 pl-0">
         {sources.map((source, index) => {
@@ -762,10 +756,10 @@ function SourceReferences({ sources, anchorPrefix }) {
                 {referenceNumber}
               </span>
               <span className="min-w-0 flex-1 break-words">{title}</span>
-              {source.link_type === "related_page" && <span className="ml-2">Relaterad sida, inte originaldokumentet</span>}
-              {source.source_type === "document_guidance" && <span className="ml-2">Allmän vägledning</span>}
-              {source.cached && <span className="ml-2">Tidigare hämtat</span>}
-              {source.link_status === "indexed_not_fetched" && <span className="ml-2">Dokumentlänk – tillgängligheten är inte bekräftad</span>}
+              {source.link_type === "related_page" && <span className="ml-2">Related page, not the original document</span>}
+              {source.source_type === "document_guidance" && <span className="ml-2">General guidance</span>}
+              {source.cached && <span className="ml-2">Previously retrieved</span>}
+              {source.link_status === "indexed_not_fetched" && <span className="ml-2">Document link – availability is unconfirmed</span>}
               {source.link && (
                 <FiExternalLink
                   aria-hidden="true"
@@ -866,7 +860,7 @@ function Message({ children, position, time, message }) {
     try {
       await downloadDraftReport(report.report_id, report.file_name);
     } catch (error) {
-      showToast("Det gick inte att hämta rapportutkastet", "error");
+      showToast("Could not download the draft report", "error");
     }
   };
 
@@ -913,7 +907,7 @@ function Message({ children, position, time, message }) {
             className="btn btn-sm mt-2"
             onClick={handleDownload}
           >
-            Hämta rapportutkast
+            Download draft report
           </button>
         )}
         {isAssistantMessage && <RatePanel message={message} />}

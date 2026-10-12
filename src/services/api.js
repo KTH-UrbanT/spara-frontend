@@ -4,51 +4,51 @@ import { VITE_MS_URL } from "../constants.js";
 // Helpers
 
 const SERVICE_ERROR_MESSAGES = [
-  [/^incorrect email or password[.!]?$/i, "Fel e-postadress eller lösenord."],
-  [/^email already registered(?:\. please log in instead)?[.!]?$/i, "E-postadressen är redan registrerad. Logga in istället."],
-  [/^cannot login as temporary user: this is a regular user account with credentials[.!]?$/i, "Du har redan ett konto med lösenord. Logga in med e-postadress och lösenord."],
-  [/^(?:temporary users must have an email address|email is required)[.!]?$/i, "Ange din e-postadress."],
-  [/^(?:temporary user|user) not found[.!]?$/i, "Kontot kunde inte hittas. Logga in eller fortsätt med e-post igen."],
-  [/^(?:token has expired|token expired)[.!]?$/i, "Inloggningen har gått ut. Logga in igen."],
-  [/^(?:invalid token|not authenticated|unauthorized)[.!]?$/i, "Du behöver logga in eller fortsätta med e-post igen."],
-  [/^forbidden[.!]?$/i, "Du har inte åtkomst till detta innehåll."],
-  [/^temporary users cannot (?:access this resource|export evaluation records|submit advisor reviews)[.!]?$/i, "Du behöver ett registrerat konto för den här funktionen."],
-  [/^message cannot be empty[.!]?$/i, "Skriv ett meddelande först."],
-  [/^user id is required[.!]?$/i, "Logga in eller fortsätt med e-post för att starta ett samtal."],
-  [/^session id(?: integer)? is required[.!]?$/i, "Samtalet laddas fortfarande. Försök igen om en stund."],
-  [/^(?:this chat session could not be found|owning session was not found|session .+ not found)[.!]?$/i, "Samtalet kunde inte hittas. Välj ett annat samtal eller starta ett nytt."],
-  [/^this chat session is inactive\. reactivate it before sending a new message[.!]?$/i, "Samtalet är pausat. Återaktivera det innan du skickar ett nytt meddelande."],
-  [/^could not create the chat session[.!]?$/i, "Samtalet kunde inte skapas. Försök igen."],
-  [/^message not found for rating[.!]?$/i, "Svaret kunde inte hittas för betygsättning. Vänta en stund och försök igen."],
-  [/^report not found or expired[.!]?$/i, "Rapportutkastet kunde inte hittas eller har gått ut. Skapa ett nytt utkast."],
-  [/^report metadata is incomplete[.!]?$/i, "Rapportutkastets uppgifter är ofullständiga. Skapa ett nytt utkast."],
-  [/^unsupported export format\. use 'jsonl' or 'csv'[.!]?$/i, "Exportformatet stöds inte. Välj JSONL eller CSV."],
-  [/^(?:network error|failed to fetch)[.!]?$/i, "Det gick inte att ansluta till SPARA. Kontrollera anslutningen och försök igen."],
-  [/^(?:processing timed out\. please try again later|timeout of \d+ms exceeded)[.!]?$/i, "SPARA svarade inte i tid. Försök igen om en stund."],
+  [/^incorrect email or password[.!]?$/i, "Incorrect email address or password."],
+  [/^email already registered(?:\. please log in instead)?[.!]?$/i, "This email address is already registered. Please log in instead."],
+  [/^cannot login as temporary user: this is a regular user account with credentials[.!]?$/i, "You already have an account with a password. Log in with your email address and password."],
+  [/^(?:temporary users must have an email address|email is required)[.!]?$/i, "Enter your email address."],
+  [/^(?:temporary user|user) not found[.!]?$/i, "Account not found. Log in or continue with email again."],
+  [/^(?:token has expired|token expired)[.!]?$/i, "Your login has expired. Please log in again."],
+  [/^(?:invalid token|not authenticated|unauthorized)[.!]?$/i, "Please log in or continue with email again."],
+  [/^forbidden[.!]?$/i, "You do not have access to this content."],
+  [/^temporary users cannot (?:access this resource|export evaluation records|submit advisor reviews)[.!]?$/i, "You need a registered account to use this feature."],
+  [/^message cannot be empty[.!]?$/i, "Write a message first."],
+  [/^user id is required[.!]?$/i, "Log in or continue with email to start a conversation."],
+  [/^session id(?: integer)? is required[.!]?$/i, "The conversation is still loading. Please try again shortly."],
+  [/^(?:this chat session could not be found|owning session was not found|session .+ not found)[.!]?$/i, "Conversation not found. Choose another conversation or start a new one."],
+  [/^this chat session is inactive\. reactivate it before sending a new message[.!]?$/i, "This conversation is paused. Reactivate it before sending a new message."],
+  [/^could not create the chat session[.!]?$/i, "Could not create the conversation. Please try again."],
+  [/^message not found for rating[.!]?$/i, "Could not find the response to rate. Wait a moment and try again."],
+  [/^report not found or expired[.!]?$/i, "The draft report was not found or has expired. Create a new draft."],
+  [/^report metadata is incomplete[.!]?$/i, "The draft report details are incomplete. Create a new draft."],
+  [/^unsupported export format\. use 'jsonl' or 'csv'[.!]?$/i, "Unsupported export format. Choose JSONL or CSV."],
+  [/^(?:network error|failed to fetch)[.!]?$/i, "Could not connect to SPARA. Check your connection and try again."],
+  [/^(?:processing timed out\. please try again later|timeout of \d+ms exceeded)[.!]?$/i, "SPARA did not respond in time. Please try again shortly."],
 ];
 
 // Service details are not conversation content. Only recognized public messages
-// are shown; unrecognized server/technical text uses the caller's Swedish label.
-export const localizeServiceError = (detail, fallback = "Något gick fel. Försök igen.") => {
+// are shown; unrecognized server/technical text uses the caller's English label.
+export const localizeServiceError = (detail, fallback = "Something went wrong. Please try again.") => {
   if (typeof detail !== "string") return fallback;
   const text = detail.trim();
   for (const [pattern, message] of SERVICE_ERROR_MESSAGES) {
     if (pattern.test(text) || text === message) return message;
   }
   const publicMessages = [
-    "Ett meddelande och en inloggad användare krävs.",
-    "Servern bekräftade inte att ditt första meddelande sparades.",
-    "Samtalet kunde inte skapas.",
-    "Det gick inte att ansluta till SPARA. Meddelandet finns kvar i skrivfältet.",
-    "SPARA har inte bekräftat meddelandet. Kontrollera dina samtal innan du skickar det igen.",
-    "Skriv ett meddelande innan du skickar.",
-    "Användaruppgifter saknas. Ladda om sidan och försök igen.",
-    "Ange din e-postadress för att starta ett samtal.",
-    "Samtalsuppgifter saknas. Öppna samtalet igen.",
-    "Samtalet kunde inte hittas. Starta ett nytt samtal.",
-    "Samtalet är inte aktivt. Öppna det igen innan du skickar ett nytt meddelande.",
-    "Samtalet kunde inte avslutas. Försök igen.",
-    "Meddelandet kunde inte behandlas. Försök igen om en stund.",
+    "A message and a logged-in user are required.",
+    "The server did not confirm that your first message was saved.",
+    "Could not create the conversation.",
+    "Could not connect to SPARA. Your message is still in the input field.",
+    "SPARA has not confirmed the message. Check your conversations before sending it again.",
+    "Write a message before sending.",
+    "User details are missing. Reload the page and try again.",
+    "Enter your email address to start a conversation.",
+    "Conversation details are missing. Open the conversation again.",
+    "Conversation not found. Start a new conversation.",
+    "The conversation is inactive. Open it again before sending a new message.",
+    "Could not end the conversation. Please try again.",
+    "Could not process the message. Please try again shortly.",
   ];
   return publicMessages.includes(text) ? text : fallback;
 };

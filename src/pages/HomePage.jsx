@@ -26,17 +26,17 @@ function HomePage() {
             ) : (
               <>
                 <p className="text-sm dark:text-slate-300">
-                  Logga in, registrera dig eller fortsätt med din e-postadress.
+                  Log in, sign up, or continue with your email address.
                 </p>
                 <div className="mx-auto flex w-full max-w-sm flex-col gap-3">
                   <Button
-                    text="Logga in"
+                    text="Log in"
                     onClick={() => navigate("/login")}
                     size="w-full"
                     color="btn-primary"
                   />
                   <Button
-                    text="Registrera dig"
+                    text="Sign up"
                     onClick={() => navigate("/register")}
                     size="w-full"
                     color="btn-outline"
@@ -44,7 +44,7 @@ function HomePage() {
                     textColor="text-primary"
                   />
                   <Button
-                    text="Fortsätt med e-post"
+                    text="Continue with email"
                     onClick={() => setEmailModalOpen(true)}
                     size="w-full"
                     color="btn-outline"

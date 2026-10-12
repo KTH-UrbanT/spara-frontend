@@ -29,13 +29,13 @@ const SendPanel = () => {
     const text = message;
     if (text.trim()) {
       if (!user?.email) {
-        showToast("Logga in eller registrera dig för att starta en chatt.", "error");
+        showToast("Log in or sign up to start a chat.", "error");
         navigate("/login");
         return;
       }
 
       if (isCurrentSessionInactive) {
-        showToast("Återaktivera samtalet innan du skickar ett meddelande.", "warning");
+        showToast("Reactivate the conversation before sending a message.", "warning");
         return;
       }
       submittingRef.current = true;
@@ -51,13 +51,13 @@ const SendPanel = () => {
           }
         }
       } catch (error) {
-        showToast(localizeServiceError(error?.response?.data?.detail || error.message, "Meddelandet kunde inte skickas."), "error");
+        showToast(localizeServiceError(error?.response?.data?.detail || error.message, "Could not send the message."), "error");
       } finally {
         submittingRef.current = false;
         setIsSubmitting(false);
       }
     } else {
-      showToast("Skriv ett meddelande först.", "error");
+      showToast("Write a message first.", "error");
     }
   };
 
@@ -94,8 +94,8 @@ const SendPanel = () => {
       <textarea
         ref={textareaRef}
         id="chatTextarea"
-        placeholder="Skriv ett meddelande..."
-        aria-label="Skriv ett meddelande"
+        placeholder="Write a message..."
+        aria-label="Write a message"
         value={message}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
@@ -105,8 +105,8 @@ const SendPanel = () => {
       <Button
         icon={<HiPaperAirplane style={{ transform: "rotate(90deg)" }} />}
         type="submit"
-        title="Skicka meddelande"
-        aria-label="Skicka meddelande"
+        title="Send message"
+        aria-label="Send message"
         disabled={isCurrentSessionInactive || isSubmitting}
       />
     </form>

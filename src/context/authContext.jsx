@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
       // For temporary users: try to re-login with same user ID
       try {
         console.log("Re-authenticating temporary user:", currentUser.user_id);
-        showToast("Sessionen har gått ut. Ansluter igen...", "warning");
+        showToast("Your session has expired. Reconnecting...", "warning");
 
         const loginResponse = await loginTemporaryUser(currentUser.user_id);
         const new_user = {
@@ -76,13 +76,14 @@ export const AuthProvider = ({ children }) => {
         // showToast("Session refreshed successfully", "success");
       } catch (reAuthError) {
         console.error("Failed to re-authenticate temporary user:", reAuthError);
-        // showToast("Failed to refresh session. Creating new session...", "error");
-        // logout();
+        logout();
+        showToast("Your saved login is no longer valid. Please log in or continue with email again.", "warning");
+        router.navigate("/login");
       }
     } else {
       // For regular users: logout completely
       console.log("Logging out regular user due to token expiration");
-      showToast("Sessionen har gått ut. Logga in igen.", "warning");
+      showToast("Your session has expired. Please log in again.", "warning");
       logout();
       router.navigate("/login");
     }
@@ -106,7 +107,7 @@ export const AuthProvider = ({ children }) => {
 
     const normalizedEmail = String(email || "").trim().toLowerCase();
     if (!normalizedEmail) {
-      showToast("Ange din e-postadress.", "error");
+      showToast("Enter your email address.", "error");
       return null;
     }
 
@@ -115,7 +116,7 @@ export const AuthProvider = ({ children }) => {
       const registration = await registerTemporaryUser(normalizedEmail);
       const userId = registration?.user_id ?? registration;
       if (!userId) {
-        showToast("Det gick inte att fortsätta med e-postadressen.", "error");
+        showToast("Could not continue with this email address.", "error");
         return null;
       }
 
@@ -134,7 +135,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Failed to continue with email:", error);
       const detail = error.response?.data?.detail;
-      showToast(localizeServiceError(detail, "Det gick inte att fortsätta med e-postadressen."), "error");
+      showToast(localizeServiceError(detail, "Could not continue with this email address."), "error");
       return null;
     } finally {
       setIsCreatingUser(false);
@@ -144,6 +145,7 @@ export const AuthProvider = ({ children }) => {
   // Persist user and fetch sessions by user
   useEffect(() => {
     console.log("Persisting user to localStorage:", user?.user_id);
+    let cancelled = false;
 
     const fetchSessions = async () => {
       try {
@@ -156,6 +158,7 @@ export const AuthProvider = ({ children }) => {
 
         console.log("Fetching sessions for user:", user.user_id);
         const result = await getSessionsByUser(user.user_id);
+        if (cancelled) return;
 
         console.log("Sessions fetched successfully:", result?.length || 0, "sessions");
         const sessionList = Array.isArray(result) ? result : [];
@@ -163,11 +166,11 @@ export const AuthProvider = ({ children }) => {
 
         localStorage.setItem("sessions", JSON.stringify(sessionList));
       } catch (error) {
-        console.error("Samtalen kunde inte hämtas:", error);
+        if (cancelled) return;
+        console.error("Could not load conversations:", error);
 
         // Check for token expiration error
         if (error.response?.status === 401) {
-          console.log("HERERERER")
           const errorDetail = error.response?.data?.detail || "";
           console.log("Authentication error detail:", error.response?.data);
 
@@ -175,10 +178,12 @@ export const AuthProvider = ({ children }) => {
             console.log("Token expired during session fetch");
             await handleTokenExpiration(user);
           } else {
-            showToast("Inloggningen misslyckades. Försök igen.", "error");
+            logout();
+            showToast("Your saved login is no longer valid. Please log in or continue with email again.", "warning");
+            router.navigate("/login");
           }
         } else {
-          showToast("Samtalen kunde inte hämtas", "error");
+          showToast("Could not load conversations", "error");
         }
       }
     };
@@ -192,6 +197,7 @@ export const AuthProvider = ({ children }) => {
 
     // Fetch sessions whenever user changes
     fetchSessions();
+    return () => { cancelled = true; };
   }, [user]);
 
   // Persist selectedSession

@@ -10,29 +10,29 @@ import { localizeServiceError, sendAdvisorReview } from "../../services/api";
 import { useAuth } from "../../context/authContext";
 
 const BOOLEAN_FIELDS = [
-  ["route_correct", "Rätt svarstyp"],
-  ["building_data_correct", "Korrekta byggnadsuppgifter"],
-  ["recommendation_correct", "Korrekt rekommendation"],
-  ["personalized", "Anpassat till användaren"],
-  ["useful", "Användbart"],
-  ["too_generic", "För allmänt"],
-  ["needs_minor_edit", "Behöver mindre ändring"],
-  ["needs_major_edit", "Behöver större ändring"],
-  ["unsafe_or_misleading", "Osäkert eller missvisande"],
-  ["should_have_asked_clarification", "Borde ha bett om förtydligande"],
-  ["should_have_escalated", "Borde ha hänvisat till rådgivare"],
+  ["route_correct", "Correct response type"],
+  ["building_data_correct", "Correct building data"],
+  ["recommendation_correct", "Correct recommendation"],
+  ["personalized", "Personalized for the user"],
+  ["useful", "Useful"],
+  ["too_generic", "Too generic"],
+  ["needs_minor_edit", "Needs minor edits"],
+  ["needs_major_edit", "Needs major edits"],
+  ["unsafe_or_misleading", "Unsafe or misleading"],
+  ["should_have_asked_clarification", "Should have asked for clarification"],
+  ["should_have_escalated", "Should have referred to an advisor"],
 ];
 
 const SCORE_FIELDS = [
-  ["technical_correctness_score", "Teknisk korrekthet"],
-  ["building_specificity_score", "Passar byggnaden"],
-  ["personalization_score", "Anpassning till användaren"],
-  ["usefulness_score", "Användbarhet"],
-  ["justification_score", "Motivering"],
-  ["clarity_score", "Tydlighet"],
-  ["trust_score", "Tillit"],
-  ["safety_score", "Säkerhet"],
-  ["advisor_confidence", "Granskarens säkerhet"],
+  ["technical_correctness_score", "Technical accuracy"],
+  ["building_specificity_score", "Building specificity"],
+  ["personalization_score", "Personalization"],
+  ["usefulness_score", "Usefulness"],
+  ["justification_score", "Justification"],
+  ["clarity_score", "Clarity"],
+  ["trust_score", "Trust"],
+  ["safety_score", "Safety"],
+  ["advisor_confidence", "Reviewer confidence"],
 ];
 
 const ERROR_TAGS = [
@@ -47,26 +47,26 @@ const ERROR_TAGS = [
 ];
 
 const ERROR_TAG_LABELS = {
-  routing: "Val av svarstyp",
-  retrieval: "Hämtning av underlag",
-  generation: "Svarsgenerering",
-  "data-field": "Datafält",
-  clarification: "Förtydligande",
-  hallucination: "Påhittade uppgifter",
-  "too-technical": "För tekniskt",
-  "too-vague": "För otydligt",
+  routing: "Response routing",
+  retrieval: "Evidence retrieval",
+  generation: "Response generation",
+  "data-field": "Data field",
+  clarification: "Clarification",
+  hallucination: "Fabricated information",
+  "too-technical": "Too technical",
+  "too-vague": "Too vague",
 };
 
 const CORRECTION_ACTIONS = [
-  ["edited_answer", "Ändrat svar"],
-  ["fixed_building_data", "Rättade byggnadsuppgifter"],
-  ["fixed_routing", "Rättad svarstyp"],
-  ["fixed_retrieval", "Rättat underlag"],
-  ["removed_unsupported_claim", "Borttaget påstående utan underlag"],
-  ["made_less_technical", "Förenklad formulering"],
-  ["added_clarification", "Tillagt förtydligande"],
-  ["escalated_to_advisor", "Hänvisat till rådgivare"],
-  ["no_change_needed", "Ingen ändring behövs"],
+  ["edited_answer", "Edited response"],
+  ["fixed_building_data", "Corrected building data"],
+  ["fixed_routing", "Corrected response type"],
+  ["fixed_retrieval", "Corrected evidence"],
+  ["removed_unsupported_claim", "Removed unsupported claim"],
+  ["made_less_technical", "Simplified wording"],
+  ["added_clarification", "Added clarification"],
+  ["escalated_to_advisor", "Referred to an advisor"],
+  ["no_change_needed", "No changes needed"],
 ];
 
 const emptyBooleans = Object.fromEntries(
@@ -80,61 +80,61 @@ const emptyScores = Object.fromEntries(
 const isPresent = (value) => value !== undefined && value !== null && value !== "";
 
 const STATUS_LABELS = {
-  generic: "Allmänna råd",
-  genericagent: "Allmänna råd",
-  building_specific: "Byggnadsspecifikt svar",
-  buildingagent: "Byggnadsspecifikt svar",
-  building: "Byggnadsuppgifter",
+  generic: "General advice",
+  genericagent: "General advice",
+  building_specific: "Building-specific response",
+  buildingagent: "Building-specific response",
+  building: "Building details",
   sql: "SQL",
-  vector: "Dokumentunderlag",
+  vector: "Document evidence",
   llm: "LLM",
-  combined: "Byggnadsuppgifter och råd",
-  cluster: "Byggnadsgrupper",
-  clusteragent: "Byggnadsgrupper",
-  conversational: "Samtal",
-  conversationalagent: "Samtal",
-  conversationalist: "Samtal",
-  fast_conversational: "Samtal",
-  conversation: "Samtal",
-  clarification: "Förtydligande",
-  fast_multi_address_clarification: "Förtydligande av adress",
-  router: "Val av svarstyp",
-  routeragent: "Val av svarstyp",
-  out_of_scope: "Utanför tjänstens område",
-  boundary: "Utanför tjänstens område",
-  boundaryagent: "Utanför tjänstens område",
-  draft_energy_report: "Rapportutkast",
-  report_generation: "Rapportutkast",
-  reportagent: "Rapportutkast",
-  expert_handoff: "Överlämning till rådgivare",
-  experthandoffagent: "Överlämning till rådgivare",
-  pending_confirmation: "Inväntar godkännande",
-  pending: "Väntar",
-  requested: "Begärd",
-  changes_requested: "Ändring begärd",
-  submitted: "E-postservern har tagit emot",
-  sending: "Skickas",
-  simulated: "Simulerad",
-  cancelled: "Avbruten",
-  disabled: "Inte tillgänglig",
-  failed: "Misslyckad",
-  unknown: "Okänd",
-  unknownagent: "Okänd svarstyp",
-  passed: "Kontrollen godkänd",
-  needs_review: "Behöver granskas",
-  not_applicable: "Ej tillämpligt",
-  unassessed: "Inte bedömt",
-  no_claims: "Inga påståenden att granska",
-  answered: "Besvarad",
-  answered_directly: "Besvarad direkt",
-  redirected: "Hänvisad vidare",
-  over_refusal: "Svaret avböjdes utan skäl",
-  legal_advice: "Juridisk rådgivning",
-  financial_advice: "Finansiell rådgivning",
-  detailed_engineering_calculation: "Detaljerad teknisk beräkning",
-  installer_or_vendor_recommendation: "Rekommendation av installatör eller leverantör",
-  personal_data_or_privacy_issue: "Personuppgifter eller integritet",
-  external_contact_or_register_update: "Ändring av externa kontakt- eller registeruppgifter",
+  combined: "Building data and advice",
+  cluster: "Building groups",
+  clusteragent: "Building groups",
+  conversational: "Conversation",
+  conversationalagent: "Conversation",
+  conversationalist: "Conversation",
+  fast_conversational: "Conversation",
+  conversation: "Conversation",
+  clarification: "Clarification",
+  fast_multi_address_clarification: "Address clarification",
+  router: "Response routing",
+  routeragent: "Response routing",
+  out_of_scope: "Out of scope",
+  boundary: "Out of scope",
+  boundaryagent: "Out of scope",
+  draft_energy_report: "Draft report",
+  report_generation: "Draft report",
+  reportagent: "Draft report",
+  expert_handoff: "Advisor handoff",
+  experthandoffagent: "Advisor handoff",
+  pending_confirmation: "Awaiting confirmation",
+  pending: "Pending",
+  requested: "Requested",
+  changes_requested: "Changes requested",
+  submitted: "Accepted by mail server",
+  sending: "Sending",
+  simulated: "Simulated",
+  cancelled: "Cancelled",
+  disabled: "Unavailable",
+  failed: "Failed",
+  unknown: "Unknown",
+  unknownagent: "Unknown response type",
+  passed: "Check passed",
+  needs_review: "Needs review",
+  not_applicable: "Not applicable",
+  unassessed: "Unassessed",
+  no_claims: "No claims to review",
+  answered: "Answered",
+  answered_directly: "Answered directly",
+  redirected: "Redirected",
+  over_refusal: "Response declined without justification",
+  legal_advice: "Legal advice",
+  financial_advice: "Financial advice",
+  detailed_engineering_calculation: "Detailed engineering calculation",
+  installer_or_vendor_recommendation: "Installer or vendor recommendation",
+  personal_data_or_privacy_issue: "Personal data or privacy",
+  external_contact_or_register_update: "External contact or register update",
 };
 
 const normalizeStatus = (value) => {
@@ -145,7 +145,7 @@ const normalizeStatus = (value) => {
 
   return Object.prototype.hasOwnProperty.call(STATUS_LABELS, key)
     ? STATUS_LABELS[key]
-    : "Okänd status";
+    : "Unknown status";
 };
 
 const formatPercent = (value) => {
@@ -169,11 +169,11 @@ const formatSeconds = (value) => {
 
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) {
-    return "Okänd svarstid";
+    return "Unknown response time";
   }
 
   const fractionDigits = numeric >= 10 ? 0 : 1;
-  return `${new Intl.NumberFormat("sv-SE", {
+  return `${new Intl.NumberFormat("en-GB", {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   }).format(numeric)} s`;
@@ -188,7 +188,7 @@ const buildDiagnostics = (metadata = {}) => {
   if (metadata?.route || metadata?.agent) {
     diagnostics.push({
       key: "route",
-      label: "Svarstyp",
+      label: "Response type",
       value: normalizeStatus(metadata.route || metadata.agent),
       tone: "neutral",
     });
@@ -207,10 +207,10 @@ const buildDiagnostics = (metadata = {}) => {
     const pending = status === "pending_confirmation" || (!status && metadata?.expert_handoff_pending_confirmation === true);
     diagnostics.push({
       key: "expert-handoff",
-      label: "Överlämning",
+      label: "Handoff",
       value: normalizeStatus(status || (failed ? "failed" : sent ? "submitted" : pending ? "pending" : "requested")),
       detail: failed
-        ? localizeServiceError(metadata?.expert_handoff_error, "Överlämningen kunde inte slutföras.")
+        ? localizeServiceError(metadata?.expert_handoff_error, "Could not complete the handoff.")
         : "",
       tone: failed || pending || status === "unknown" || status === "sending" || status === "disabled"
         ? "warning" : status === "submitted" || (!status && sent) ? "good" : "neutral",
@@ -221,13 +221,13 @@ const buildDiagnostics = (metadata = {}) => {
     const unsupportedRate = formatPercent(grounding.unsupported_claim_rate);
     diagnostics.push({
       key: "grounding",
-      label: "Källstöd",
+      label: "Source support",
       value: normalizeStatus(grounding.status),
       detail: [
         isPresent(grounding.unsupported_claim_count)
-          ? `${grounding.unsupported_claim_count} påståenden utan underlag`
+          ? `${grounding.unsupported_claim_count} unsupported claims`
           : null,
-        unsupportedRate ? `${unsupportedRate} utan underlag` : null,
+        unsupportedRate ? `${unsupportedRate} unsupported` : null,
       ]
         .filter(Boolean)
         .join(" | "),
@@ -238,7 +238,7 @@ const buildDiagnostics = (metadata = {}) => {
   if (safety?.status) {
     diagnostics.push({
       key: "safety",
-      label: "Säkerhet",
+      label: "Safety",
       value: normalizeStatus(safety.status),
       detail: [safety.risk_category, safety.action].filter(Boolean).map(normalizeStatus).join(" | "),
       tone: safety.requires_review || safety.status === "needs_review" ? "warning" : "good",
@@ -248,14 +248,14 @@ const buildDiagnostics = (metadata = {}) => {
   if (isPresent(telemetry.total_latency_seconds)) {
     diagnostics.push({
       key: "latency",
-      label: "Svarstid",
+      label: "Response time",
       value: formatSeconds(telemetry.total_latency_seconds),
       detail: [
         isPresent(telemetry.model_call_count)
-          ? `${telemetry.model_call_count} modellanrop`
+          ? `${telemetry.model_call_count} model calls`
           : null,
         isPresent(telemetry.retrieval_call_count)
-          ? `${telemetry.retrieval_call_count} hämtningar`
+          ? `${telemetry.retrieval_call_count} retrievals`
           : null,
       ]
         .filter(Boolean)
@@ -326,7 +326,7 @@ function AdvisorReviewPanel({ message }) {
 
   const handleSave = async () => {
     if (!message?.message_id) {
-      showToast("Svaret synkroniseras fortfarande. Försök igen om en stund.", "warning");
+      showToast("The response is still syncing. Please try again shortly.", "warning");
       return;
     }
 
@@ -357,9 +357,9 @@ function AdvisorReviewPanel({ message }) {
         comments,
       });
       setIsSaved(true);
-      showToast("Rådgivargranskningen har sparats", "success");
+      showToast("Advisor review saved", "success");
     } catch {
-      showToast("Rådgivargranskningen kunde inte sparas", "error");
+      showToast("Could not save the advisor review", "error");
     } finally {
       setIsSaving(false);
     }
@@ -369,11 +369,11 @@ function AdvisorReviewPanel({ message }) {
     <details className="mt-2 max-w-[min(46rem,calc(100vw-5rem))] rounded-lg border border-base-300 bg-base-100/70 text-sm text-base-content shadow-sm">
       <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 font-medium text-base-content/80">
         <FiClipboard aria-hidden="true" size={15} />
-        Rådgivargranskning
+        Advisor review
         {isSaved && (
           <span className="ml-auto inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-xs text-emerald-700">
             <FiCheck aria-hidden="true" size={13} />
-            Sparad
+            Saved
           </span>
         )}
       </summary>
@@ -383,7 +383,7 @@ function AdvisorReviewPanel({ message }) {
           <div>
             <div className="mb-2 flex items-center gap-2 text-xs font-medium text-base-content/70">
               <FiActivity aria-hidden="true" size={14} />
-              Diagnostik
+              Diagnostics
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               {diagnostics.map((item) => (
@@ -448,7 +448,7 @@ function AdvisorReviewPanel({ message }) {
 
         <div>
           <div className="mb-2 text-xs font-medium text-base-content/70">
-            Felkategorier
+            Error categories
           </div>
           <div className="flex flex-wrap gap-2">
             {ERROR_TAGS.map((tag) => {
@@ -474,7 +474,7 @@ function AdvisorReviewPanel({ message }) {
         <div>
           <div className="mb-2 flex items-center gap-2 text-xs font-medium text-base-content/70">
             <FiEdit3 aria-hidden="true" size={14} />
-            Rättelser
+            Corrections
           </div>
           <div className="flex flex-wrap gap-2">
             {CORRECTION_ACTIONS.map(([action, label]) => {
@@ -504,8 +504,8 @@ function AdvisorReviewPanel({ message }) {
             setCorrectedAnswer(event.target.value);
             setIsSaved(false);
           }}
-          placeholder="Rättat svar"
-          aria-label="Rättat svar"
+          placeholder="Corrected response"
+          aria-label="Corrected response"
         />
 
         <textarea
@@ -515,8 +515,8 @@ function AdvisorReviewPanel({ message }) {
             setCorrectionSummary(event.target.value);
             setIsSaved(false);
           }}
-          placeholder="Sammanfattning av rättelser"
-          aria-label="Sammanfattning av rättelser"
+          placeholder="Summary of corrections"
+          aria-label="Summary of corrections"
         />
 
         <textarea
@@ -526,8 +526,8 @@ function AdvisorReviewPanel({ message }) {
             setComments(event.target.value);
             setIsSaved(false);
           }}
-          placeholder="Kommentarer"
-          aria-label="Kommentarer"
+          placeholder="Comments"
+          aria-label="Comments"
         />
 
         <div className="flex justify-end">
@@ -537,7 +537,7 @@ function AdvisorReviewPanel({ message }) {
             onClick={handleSave}
             disabled={isSaving}
           >
-            {isSaving ? "Sparar" : "Spara granskning"}
+            {isSaving ? "Saving" : "Save review"}
           </button>
         </div>
       </div>

@@ -13,8 +13,8 @@ export const router = createBrowserRouter([
     element: <Root />, // Root component which holds Outlet
     errorElement: (
       <main className="p-6" role="alert">
-        <h1 className="text-xl font-bold">Sidan kunde inte visas</h1>
-        <p>Försök igen om en stund.</p>
+        <h1 className="text-xl font-bold">Could not display the page</h1>
+        <p>Please try again shortly.</p>
         <Link className="link" to="/">Till startsidan</Link>
       </main>
     ),

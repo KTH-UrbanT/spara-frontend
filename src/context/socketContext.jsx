@@ -20,6 +20,16 @@ import { useAuth } from "./authContext";
 
 const SocketContext = createContext();
 
+const PROCESSING_STATUS_MESSAGES = {
+  queued: "Sending your question to SPARA…",
+  processing: "Reading your question…",
+  resolving: "Looking for the housing association or building…",
+  retrieving: "Retrieving building data and reference material…",
+  composing: "Preparing the response…",
+  working: "Still working on the response…",
+  done: "",
+};
+
 const fallbackMessageKey = (message) =>
   [
     message?.role || "",
@@ -104,7 +114,7 @@ export const SocketProvider = ({ children }) => {
           ...previous,
           loading: nextLoading,
           status: statusPayload?.status || previous.status,
-          message: statusPayload?.message || "",
+          message: PROCESSING_STATUS_MESSAGES[statusPayload?.status] ?? "Working on your question…",
         },
       };
     });
@@ -202,7 +212,7 @@ export const SocketProvider = ({ children }) => {
         const detail = payload?.error || payload?.message;
         console.error("Socket error:", payload);
         setSessionIsLoading(selectedSession, false);
-        showToast(localizeServiceError(detail, "SPARA kunde inte behandla meddelandet. Försök igen."), "error");
+        showToast(localizeServiceError(detail, "SPARA could not process the message. Please try again."), "error");
       };
 
       getMessagesBySession(selectedSessionInt)
@@ -295,7 +305,7 @@ export const SocketProvider = ({ children }) => {
 
   const handleSendFirstMessage = async (message, identityUser = user) => {
     if (!identityUser?.user_id || !identityUser?.email) {
-      showToast("Ange e-post för att starta ett samtal.", "error");
+      showToast("Enter your email address to start a conversation.", "error");
       return false;
     }
     if (firstMessagePending.current) return false;
@@ -335,7 +345,7 @@ export const SocketProvider = ({ children }) => {
       return true;
     } catch (error) {
       console.error("Failed to start chat:", error);
-      showToast(localizeServiceError(error.message, "Samtalet kunde inte skapas. Försök igen."), "error");
+      showToast(localizeServiceError(error.message, "Could not create the conversation. Please try again."), "error");
       return false;
     } finally {
       firstMessagePending.current = false;
@@ -346,12 +356,12 @@ export const SocketProvider = ({ children }) => {
   const handleSendMessage = (message) => {
     try {
       if (!selectedSessionInt) {
-        showToast("Samtalet laddas fortfarande. Försök igen om en stund.", "error");
+        showToast("The conversation is still loading. Please try again shortly.", "error");
         return false;
       }
 
       if (!user?.email) {
-        showToast("Ange e-post för att skicka ett meddelande.", "error");
+        showToast("Enter your email address to send a message.", "error");
         return false;
       }
 
@@ -359,13 +369,13 @@ export const SocketProvider = ({ children }) => {
       const sent = sendMessage(message, selectedSession, selectedSessionInt);
       if (!sent) {
         setSessionIsLoading(selectedSession, false);
-        showToast("Meddelandet kunde inte skickas. Försök igen.", "error");
+        showToast("Could not send the message. Please try again.", "error");
         return false;
       }
       return true;
     } catch (error) {
       console.error("Failed to send message:", error);
-      showToast("Meddelandet kunde inte skickas!", "error");
+      showToast("Could not send the message!", "error");
       setSessionIsLoading(selectedSession, false);
       return false;
     }

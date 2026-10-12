@@ -64,7 +64,7 @@ export const sendMessage = (message, sessionId, sessionIdInt) => {
 
 export const createNewSession = (message, userId, email) => {
   if (!message || !userId || !email) {
-    return Promise.reject(new Error("Ett meddelande och en inloggad användare krävs."));
+    return Promise.reject(new Error("A message and a logged-in user are required."));
   }
   const requestId = crypto.randomUUID();
   return new Promise((resolve, reject) => {
@@ -79,7 +79,7 @@ export const createNewSession = (message, userId, email) => {
       if (session?.request_id !== requestId) return;
       cleanup();
       if (!session.message_accepted || !session.session_id || !session.session_id_int) {
-        reject(new Error("Servern bekräftade inte att ditt första meddelande sparades."));
+        reject(new Error("The server did not confirm that your first message was saved."));
         return;
       }
       resolve(session);
@@ -87,11 +87,11 @@ export const createNewSession = (message, userId, email) => {
     const handleError = (payload) => {
       if (payload?.request_id !== requestId) return;
       cleanup();
-      reject(new Error(localizeServiceError(payload.error, "Samtalet kunde inte skapas.")));
+      reject(new Error(localizeServiceError(payload.error, "Could not create the conversation.")));
     };
     const handleConnectionError = () => {
       cleanup();
-      reject(new Error("Det gick inte att ansluta till SPARA. Meddelandet finns kvar i skrivfältet."));
+      reject(new Error("Could not connect to SPARA. Your message is still in the input field."));
     };
     const handleConnect = () => {
       socket.off("connect", handleConnect);
@@ -99,7 +99,7 @@ export const createNewSession = (message, userId, email) => {
     };
     const timer = setTimeout(() => {
       cleanup();
-      reject(new Error("SPARA har inte bekräftat meddelandet. Kontrollera dina samtal innan du skickar det igen."));
+      reject(new Error("SPARA has not confirmed the message. Check your conversations before sending it again."));
     }, 20000);
     socket.on(EVENTS.SESSION_CREATED, handleCreated);
     socket.on(EVENTS.ERROR_MESSAGE, handleError);

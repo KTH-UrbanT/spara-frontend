@@ -47,10 +47,10 @@ const RegisterPage = () => {
                 });
             }
 
-            showToast("Registreringen är klar. Logga in.", "success");
+            showToast("Registration complete. Please log in.", "success");
             navigate("/login");
         } catch (err) {
-            showToast(localizeServiceError(err.response?.data?.detail || err.message, "Registreringen misslyckades. Försök igen."), "error");
+            showToast(localizeServiceError(err.response?.data?.detail || err.message, "Registration failed. Please try again."), "error");
             console.error(err);
         }
     };
@@ -60,41 +60,41 @@ const RegisterPage = () => {
             <div className="card w-full max-w-sm bg-base-100 shadow-xl">
                 <div className="card-body p-6">
                     <h2 className="card-title text-xl font-bold justify-center mb-4">
-                        Registrera dig
+                        Sign up
                     </h2>
 
                     <form onSubmit={handleSubmit} className="space-y-3">
                         <div className="form-control">
                             <label htmlFor="register-username" className="label py-1">
-                                <span className="label-text text-sm">Användarnamn</span>
+                                <span className="label-text text-sm">Username</span>
                             </label>
                             <input
                                 type="text"
                                 id="register-username"
                                 name="username"
-                                aria-label="Användarnamn"
+                                aria-label="Username"
                                 className="input input-bordered w-full"
                                 value={form.username}
                                 onChange={handleChange}
-                                onInvalid={(e) => e.target.setCustomValidity("Ange ett användarnamn.")}
+                                onInvalid={(e) => e.target.setCustomValidity("Enter a username.")}
                                 required
                             />
                         </div>
 
                         <div className="form-control">
                             <label htmlFor="register-email" className="label py-1">
-                                <span className="label-text text-sm">E-post</span>
+                                <span className="label-text text-sm">Email</span>
                             </label>
                             <input
                                 type="email"
                                 id="register-email"
                                 name="email"
-                                aria-label="E-postadress"
+                                aria-label="Email address"
                                 className="input input-bordered w-full"
                                 value={form.email}
                                 onChange={handleChange}
                                 onInvalid={(e) => e.target.setCustomValidity(
-                                    e.target.validity.valueMissing ? "Ange din e-postadress." : "Ange en giltig e-postadress."
+                                    e.target.validity.valueMissing ? "Enter your email address." : "Enter a valid email address."
                                 )}
                                 required
                             />
@@ -102,24 +102,24 @@ const RegisterPage = () => {
 
                         <div className="form-control">
                             <label htmlFor="register-password" className="label py-1">
-                                <span className="label-text text-sm">Lösenord</span>
+                                <span className="label-text text-sm">Password</span>
                             </label>
                             <input
                                 type="password"
                                 id="register-password"
                                 name="password"
-                                aria-label="Lösenord"
+                                aria-label="Password"
                                 className="input input-bordered w-full"
                                 value={form.password}
                                 onChange={handleChange}
-                                onInvalid={(e) => e.target.setCustomValidity("Ange ett lösenord.")}
+                                onInvalid={(e) => e.target.setCustomValidity("Enter a password.")}
                                 required
                             />
                         </div>
 
                         <div className="form-control mt-4">
                             <Button
-                                text={user?.temporary_user ? "Slutför registrering" : "Registrera dig"}
+                                text={user?.temporary_user ? "Complete registration" : "Sign up"}
                                 type="submit"
                                 size="w-full"
                                 color="btn-primary"
@@ -127,10 +127,10 @@ const RegisterPage = () => {
                         </div>
                     </form>
 
-                    <div className="divider my-3 text-xs">ELLER</div>
+                    <div className="divider my-3 text-xs">OR</div>
 
                     <Button
-                        text="Fortsätt med e-post"
+                        text="Continue with email"
                         onClick={() => setEmailModalOpen(true)}
                         size="w-full"
                         color="btn-outline"
@@ -140,8 +140,8 @@ const RegisterPage = () => {
                     />
 
                     <div className="text-center mt-3">
-                        <span className="text-xs text-base-content/70">Har du redan ett konto? </span>
-                        <a href="/login" className="link link-primary text-xs">Logga in</a>
+                        <span className="text-xs text-base-content/70">Already have an account? </span>
+                        <a href="/login" className="link link-primary text-xs">Log in</a>
                     </div>
                 </div>
             </div>

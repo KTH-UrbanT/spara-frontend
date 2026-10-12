@@ -36,13 +36,13 @@ test("card uses the recorded address, retains the searched alias, and separates 
   assert.equal(card.address, "Hornsgatan 104");
   assert.equal(card.requestedAddress, "Ringvägen 10");
   const fields = Object.fromEntries(card.details.map(({ label, value }) => [label, value]));
-  assert.equal(fields["Sökt adress (samma byggnadsid)"], "Ringvägen 10");
-  assert.equal(fields["Byggår"], "1952");
-  assert.equal(fields["Deklarerad energiklass"], "G");
-  assert.equal(fields["Beräknad energiklass"], "F");
-  assert.equal(fields["Deklarerad energiprestanda"], "201 kWh/(m²·år)");
-  assert.equal(fields["Specifik energianvändning"], "198 kWh/(m²·år)");
-  assert.equal(fields["Primärenergital (viktat mått)"], "145 kWh/(m²·år)");
+  assert.equal(fields["Requested address (same building ID)"], "Ringvägen 10");
+  assert.equal(fields["Construction year"], "1952");
+  assert.equal(fields["Declared energy class"], "G");
+  assert.equal(fields["Calculated energy class"], "F");
+  assert.equal(fields["Declared energy performance"], "201 kWh/(m²·year)");
+  assert.equal(fields["Specific energy use"], "198 kWh/(m²·year)");
+  assert.equal(fields["Primary energy number (weighted)"], "145 kWh/(m²·year)");
 });
 
 test("the searched address note is absent when it matches the recorded address", () => {
@@ -74,8 +74,8 @@ test("card does not label a calculated-only class as declared", () => {
   const card = messageHelpers().buildBuildingContext(verifiedCard({ retrieved_facts: {
     byggnadsid: "01-80-TAPETEN2-1", energy_class: "F", calculated_energy_class: "F",
   } }));
-  assert.equal(card.details.find(({ label }) => label === "Beräknad energiklass").value, "F");
-  assert.ok(!card.details.some(({ label }) => label === "Deklarerad energiklass" || label === "Registrerad energiklass"));
+  assert.equal(card.details.find(({ label }) => label === "Calculated energy class").value, "F");
+  assert.ok(!card.details.some(({ label }) => label === "Declared energy class" || label === "Recorded energy class"));
 });
 
 for (const [name, extra] of [
@@ -104,15 +104,14 @@ test("different source documents survive a shared resource-page link", () => {
 });
 
 for (const [language, declaredLabel, calculatedLabel] of [
-  ["sv", "Deklarerad energiklass", "Beräknad energiklass"],
+  ["sv", "Declared energy class", "Calculated energy class"],
   ["en", "Declared energy class", "Calculated energy class"],
-]) test(`restored ${language} metadata retains its own card language and recorded identity`, () => {
+]) test(`restored ${language} metadata displays English card labels and recorded identity`, () => {
   const metadata = JSON.parse(JSON.stringify(verifiedCard({ response_language: language,
     data_freshness: { energy_declaration_year: 2018 },
     evidence_scope: { building_id: "01-80-TAPETEN2-1", cached_facts_used: true, sources: {} },
   })));
   const context = messageHelpers().buildBuildingContext(metadata);
-  assert.equal(context.swedish, language === "sv");
   assert.equal(context.address, "Hornsgatan 104");
   assert.equal(context.buildingId, "01-80-TAPETEN2-1");
   assert.equal(context.cached, true);
@@ -128,7 +127,7 @@ test("ODEN references display a public source name rather than an internal SQL n
     data_freshness: { energy_declaration_year: 2018 },
   }) });
   assert.equal(sources.length, 1);
-  assert.equal(sources[0].title, "ODEN – energideklaration (2018)");
+  assert.equal(sources[0].title, "ODEN – energy declaration (2018)");
   assert.ok(!sources[0].title.includes("generic_sql"));
   assert.equal(sources[0].link, "");
 });
@@ -146,12 +145,12 @@ function renderedMessageText(node) {
   return node.map(renderedMessageText).join(" ");
 }
 
-for (const [status, swedishLabel, englishLabel] of [
-  ["pending_confirmation", "Väntar på ditt godkännande", "Expert handoff pending"],
-  ["cancelled", "Överlämningen är avbruten", "Expert handoff cancelled"],
-  ["submitted", "E-postservern har tagit emot meddelandet", "Expert handoff submitted"],
-  ["simulated", "Överlämningen simulerades", "Expert handoff simulated"],
-  ["unknown", "Överlämningens status är osäker", "Expert handoff status uncertain"],
+for (const [status, englishLabel] of [
+  ["pending_confirmation", "Expert handoff pending"],
+  ["cancelled", "Expert handoff cancelled"],
+  ["submitted", "Expert handoff submitted"],
+  ["simulated", "Expert handoff simulated"],
+  ["unknown", "Expert handoff status uncertain"],
 ]) for (const language of ["sv", "en"]) {
   test(`restored ${language} ${status} handover displays recorded status with delivery limits`, () => {
     const metadata = JSON.parse(JSON.stringify({ route: "expert_handoff",
@@ -159,15 +158,15 @@ for (const [status, swedishLabel, englishLabel] of [
       expert_handoff_language: language, expert_handoff_status: status }));
     const text = renderedMessageText(messageHelpers().default({ children: "",
       message: { role: "assistant", message_id: 42, metadata }, time: "14:30" }));
-    assert.ok(text.includes(language === "sv" ? swedishLabel : englishLabel));
+    assert.ok(text.includes(englishLabel));
     if (status === "submitted") {
-      assert.ok(text.includes(language === "sv" ? "Leverans till inkorgen är inte bekräftad" : "Inbox delivery is not confirmed"));
+      assert.ok(text.includes("Inbox delivery is not confirmed"));
     }
     if (status === "simulated") {
-      assert.ok(text.includes(language === "sv" ? "Inget e-postmeddelande har skickats" : "no email was sent"));
+      assert.ok(text.includes("no email was sent"));
     }
     if (status === "cancelled") {
-      assert.ok(text.includes(language === "sv" ? "Inget e-postmeddelande har skickats" : "No email was submitted"));
+      assert.ok(text.includes("No email was submitted"));
     }
   });
 }
@@ -247,7 +246,7 @@ test("creation waits for a matching saved-message confirmation and emits only on
 test("connection failure cancels unsent creation instead of buffering it", async () => {
   const { socket, service, timers } = socketService();
   const pending = service.createNewSession("Keep this", 1, "user@example.com");
-  const rejected = assert.rejects(pending, /inte att ansluta/);
+  const rejected = assert.rejects(pending, /Could not connect/);
   socket.serverEmit("connect_error", new Error("offline"));
   await rejected;
   socket.serverConnect();
@@ -258,7 +257,7 @@ test("connection failure cancels unsent creation instead of buffering it", async
 test("creation timeout removes listeners and does not send after a late connection", async () => {
   const { socket, service, timers } = socketService();
   const pending = service.createNewSession("Keep this", 1, "user@example.com");
-  const rejected = assert.rejects(pending, /inte bekräftat/);
+  const rejected = assert.rejects(pending, /has not confirmed/);
   [...timers.values()][0]();
   await rejected;
   socket.serverConnect();
@@ -270,7 +269,7 @@ test("a session without saved-message acceptance does not count as delivery", as
   const { socket, service } = socketService();
   socket.connected = true;
   const pending = service.createNewSession("Keep this", 1, "user@example.com");
-  const rejected = assert.rejects(pending, /bekräftade inte/);
+  const rejected = assert.rejects(pending, /did not confirm/);
   socket.serverEmit("session_created", {
     request_id: socket.outbound[0][4], session_id: "chat-1", session_id_int: 21,
   });
@@ -321,6 +320,61 @@ function hookHarness() {
     },
   };
 }
+
+function authHarness(getSessionsByUser) {
+  const hooks = hookHarness();
+  const storage = new Map(Object.entries({
+    user: JSON.stringify({ user_id: 1, email: "old@example.com", token: "old-token" }),
+    sessions: JSON.stringify([{ session_id: 100, session_token: "old-chat" }]),
+    selectedSession: JSON.stringify("old-chat"),
+    session_id_int: JSON.stringify(100),
+  }));
+  const navigations = [];
+  const react = { ...hooks.react, createContext: () => ({ Provider: "auth-provider" }) };
+  const provider = loadSource("src/context/authContext.jsx", {
+    react,
+    "../routes/router": { router: { navigate: (path) => navigations.push(path) } },
+    "../services/api": { getSessionsByUser, localizeServiceError: (detail, fallback) => fallback },
+    "../components/Toast": "toast",
+  }, {
+    React: react,
+    localStorage: {
+      getItem: (key) => storage.get(key) ?? null,
+      setItem: (key, value) => storage.set(key, value),
+      removeItem: (key) => storage.delete(key),
+    },
+    setTimeout: () => 0,
+  }).AuthProvider;
+  return { render: () => hooks.render(provider).props.value, storage, navigations };
+}
+
+test("a saved login for a missing user clears stale chat state and returns to login", async () => {
+  const harness = authHarness(async () => {
+    throw { response: { status: 401, data: { detail: "User not found" } } };
+  });
+  harness.render();
+  await tick();
+  const auth = harness.render();
+  assert.equal(auth.user, null);
+  assert.equal(auth.selectedSession, null);
+  assert.deepEqual(Array.from(auth.sessions), []);
+  for (const key of ["user", "selectedSession", "session_id_int"]) {
+    assert.equal(harness.storage.has(key), false);
+  }
+  assert.deepEqual(harness.navigations, ["/login"]);
+});
+
+test("an old session fetch cannot log out a newly signed-in user", async () => {
+  const oldRequest = deferred();
+  const harness = authHarness((id) => id === 1 ? oldRequest.promise : Promise.resolve([]));
+  const auth = harness.render();
+  auth.setUser({ user_id: 2, email: "new@example.com", token: "new-token" });
+  harness.render();
+  oldRequest.resolve(Promise.reject({ response: { status: 401, data: { detail: "User not found" } } }));
+  await tick();
+  assert.equal(harness.render().user.user_id, 2);
+  assert.deepEqual(harness.navigations, []);
+});
 
 test("New Chat clears the previous selected session through the actual route effect", () => {
   const hooks = hookHarness();
@@ -382,14 +436,14 @@ for (const temporaryUser of [true, false]) {
     }, { localStorage: { getItem: (key) => JSON.stringify(key === "user" ? user : 21) } }).default;
     const render = () => hooks.render(() => ratingPanel({ message }));
     let panel = render();
-    assert.equal(panel.props["aria-label"], "Betygsätt svaret");
+    assert.equal(panel.props["aria-label"], "Rate the response");
     assert.equal(panel.props.children[0].length, 5);
     assert.equal(panel.props.children[0][1].props.children[0].type, "selected-star");
     await panel.props.children[0][3].props.onClick();
     assert.deepEqual(calls[0], [3, 4, "Råd", 21, 42]);
     assert.equal(updates[0][0], message);
     assert.deepEqual(updates[0].slice(1), [4, 17, 42]);
-    assert.deepEqual(toasts[0], ["Betyget har skickats", "success"]);
+    assert.deepEqual(toasts[0], ["Rating submitted", "success"]);
     panel = render();
     assert.equal(panel.props.children[0][3].props.children[0].type, "selected-star");
     message.rating = 5;
