@@ -112,8 +112,11 @@ function SessionStatusBar() {
         onClick={handleToggle}
         disabled={isSaving}
       >
-        <Icon aria-hidden="true" size={16} />
-        {isSaving ? "Sparar" : isActive ? "Pausa" : "Återaktivera"}
+        {/* Keep translated text separate from the icon replaced on toggle. */}
+        <span className="inline-flex" aria-hidden="true">
+          <Icon size={16} />
+        </span>
+        <span>{isSaving ? "Sparar" : isActive ? "Pausa" : "Återaktivera"}</span>
       </button>
     </div>
   );
